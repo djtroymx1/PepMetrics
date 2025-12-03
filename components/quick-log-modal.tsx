@@ -1,35 +1,50 @@
 "use client"
 
-import { useState } from "react"
-import { X, Syringe, Utensils, Weight, Droplets, Loader2 } from "lucide-react"
+import { useState, useEffect } from "react"
+import { X, Syringe, Utensils, Weight, Droplets, Loader2, Check, Clock, AlertCircle } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { createClient } from "@/lib/supabase/client"
 import { useAuth } from "@/components/providers/auth-provider"
+import { getProtocols, getDoseLogs, markDoseAsTaken, markDoseAsSkipped } from "@/lib/storage"
+import { getDosesToday, getOverdueDoses } from "@/lib/scheduling"
+import { getPeptideById } from "@/lib/peptides"
+import { TimingBadge } from "@/components/timing-badge"
+import type { Protocol, DoseLog, ScheduledDose } from "@/lib/types"
 
 interface QuickLogModalProps {
   isOpen: boolean
   onClose: () => void
+  onDoseLogged?: () => void
 }
 
 type LogType = "injection" | "meal" | "weight" | "water"
 
-export function QuickLogModal({ isOpen, onClose }: QuickLogModalProps) {
+export function QuickLogModal({ isOpen, onClose, onDoseLogged }: QuickLogModalProps) {
   const [logType, setLogType] = useState<LogType>("injection")
   const { user, loading: authLoading } = useAuth()
+
+  const handleClose = () => {
+    onClose()
+  }
+
+  const handleDoseLogged = () => {
+    onDoseLogged?.()
+    onClose()
+  }
 
   if (!isOpen) return null
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center">
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={onClose} />
+      <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={handleClose} />
 
       {/* Modal */}
       <div className="relative w-full max-w-2xl mx-4 mb-4 sm:mb-0 rounded-lg border border-border bg-card shadow-xl max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-border p-4 sticky top-0 bg-card z-10">
           <h2 className="text-xl font-semibold">Quick Log</h2>
-          <button onClick={onClose} className="rounded-md p-1 hover:bg-muted transition-colors">
+          <button onClick={handleClose} className="rounded-md p-1 hover:bg-muted transition-colors">
             <X className="h-5 w-5 text-muted-foreground" />
           </button>
         </div>
@@ -60,208 +75,240 @@ export function QuickLogModal({ isOpen, onClose }: QuickLogModalProps) {
 
         {/* Content */}
         <div className="p-6">
-          {logType === "injection" && <InjectionForm user={user} authLoading={authLoading} onClose={onClose} />}
-          {logType === "meal" && <MealForm user={user} authLoading={authLoading} onClose={onClose} />}
-          {logType === "weight" && <WeightForm user={user} authLoading={authLoading} onClose={onClose} />}
-          {logType === "water" && <WaterForm user={user} authLoading={authLoading} onClose={onClose} />}
+          {logType === "injection" && <InjectionForm onDoseLogged={handleDoseLogged} onClose={handleClose} />}
+          {logType === "meal" && <MealForm user={user} authLoading={authLoading} onClose={handleClose} />}
+          {logType === "weight" && <WeightForm user={user} authLoading={authLoading} onClose={handleClose} />}
+          {logType === "water" && <WaterForm user={user} authLoading={authLoading} onClose={handleClose} />}
         </div>
       </div>
     </div>
   )
 }
 
-type FormProps = { user: ReturnType<typeof useAuth>["user"], authLoading: boolean, onClose: () => void }
+// New injection form that works with the protocol/scheduling system
+function InjectionForm({ onDoseLogged, onClose }: { onDoseLogged: () => void, onClose: () => void }) {
+  const [protocols, setProtocols] = useState<Protocol[]>([])
+  const [doseLogs, setDoseLogs] = useState<DoseLog[]>([])
+  const [pendingDoses, setPendingDoses] = useState<ScheduledDose[]>([])
+  const [loading, setLoading] = useState(true)
 
-function InjectionForm({ user, authLoading, onClose }: FormProps) {
-  const supabase = createClient()
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  useEffect(() => {
+    const prots = getProtocols()
+    const logs = getDoseLogs()
+    setProtocols(prots)
+    setDoseLogs(logs)
 
-  const [peptide, setPeptide] = useState("Retatrutide")
-  const [dose, setDose] = useState("")
-  const [doseUnit, setDoseUnit] = useState<"mcg" | "mg" | "IU">("mcg")
-  const [selectedSite, setSelectedSite] = useState<string | null>(null)
-  const [time, setTime] = useState(new Date().toTimeString().slice(0, 5))
-  const [notes, setNotes] = useState("")
+    // Get today's pending/overdue doses
+    const todayDoses = getDosesToday(prots.filter(p => p.status === 'active'), logs)
+    const overdueDoses = getOverdueDoses(prots.filter(p => p.status === 'active'), logs)
 
-  const handleSubmit = async () => {
-    if (authLoading) {
-      setError("Checking session, please wait")
-      return
-    }
-    if (!user) {
-      setError("You must be logged in")
-      return
-    }
-    if (!dose || parseFloat(dose) <= 0) {
-      setError("Please enter a valid dosage")
-      return
-    }
+    // Combine and filter for actionable doses
+    const actionable = [...overdueDoses, ...todayDoses].filter(
+      d => d.status === 'pending' || d.status === 'overdue'
+    )
 
-    setLoading(true)
-    setError(null)
+    // Remove duplicates (by protocolId + scheduledDate + doseNumber)
+    const unique = actionable.filter((dose, index, self) =>
+      index === self.findIndex(d =>
+        d.protocolId === dose.protocolId &&
+        d.scheduledDate === dose.scheduledDate &&
+        d.doseNumber === dose.doseNumber
+      )
+    )
 
-    // Combine today's date with the selected time
-    const today = new Date().toISOString().split('T')[0]
-    const injectionTime = new Date(`${today}T${time}:00`)
+    setPendingDoses(unique)
+    setLoading(false)
+  }, [])
 
-    const { error: insertError } = await supabase.from('injections').insert({
-      user_id: user.id,
-      peptide_name: peptide,
-      dose_value: parseFloat(dose),
-      dose_unit: doseUnit,
-      injection_site: selectedSite,
-      injection_time: injectionTime.toISOString(),
-      notes: notes || null,
-    })
-
-    if (insertError) {
-      setError(insertError.message)
-      setLoading(false)
-    } else {
-      onClose()
-    }
+  const handleMarkTaken = (dose: ScheduledDose) => {
+    markDoseAsTaken(
+      dose.protocolId,
+      dose.scheduledDate,
+      dose.doseNumber,
+      dose.peptideName,
+      dose.dose
+    )
+    onDoseLogged()
   }
 
-  const sites = [
-    { id: "left-abdomen", label: "Left Abdomen", x: 35, y: 45 },
-    { id: "right-abdomen", label: "Right Abdomen", x: 65, y: 45 },
-    { id: "left-thigh", label: "Left Thigh", x: 35, y: 75 },
-    { id: "right-thigh", label: "Right Thigh", x: 65, y: 75 },
-    { id: "left-arm", label: "Left Arm", x: 20, y: 35 },
-    { id: "right-arm", label: "Right Arm", x: 80, y: 35 },
-  ]
+  const handleMarkSkipped = (dose: ScheduledDose) => {
+    markDoseAsSkipped(
+      dose.protocolId,
+      dose.scheduledDate,
+      dose.doseNumber,
+      dose.peptideName,
+      dose.dose
+    )
+    onDoseLogged()
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    )
+  }
+
+  if (protocols.filter(p => p.status === 'active').length === 0) {
+    return (
+      <div className="text-center py-8">
+        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted mx-auto mb-4">
+          <Syringe className="h-6 w-6 text-muted-foreground" />
+        </div>
+        <h3 className="font-medium mb-2">No Active Protocols</h3>
+        <p className="text-sm text-muted-foreground mb-4">
+          Create a protocol first to track your peptide doses.
+        </p>
+        <button
+          onClick={onClose}
+          className="px-4 py-2 rounded-lg border border-border text-sm font-medium hover:bg-muted transition-colors"
+        >
+          Close
+        </button>
+      </div>
+    )
+  }
+
+  if (pendingDoses.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-500/10 mx-auto mb-4">
+          <Check className="h-6 w-6 text-green-500" />
+        </div>
+        <h3 className="font-medium mb-2">All Caught Up!</h3>
+        <p className="text-sm text-muted-foreground mb-4">
+          You have no pending doses right now.
+        </p>
+        <button
+          onClick={onClose}
+          className="px-4 py-2 rounded-lg border border-border text-sm font-medium hover:bg-muted transition-colors"
+        >
+          Close
+        </button>
+      </div>
+    )
+  }
+
+  // Group doses by status (overdue first, then pending)
+  const overdueDoses = pendingDoses.filter(d => d.status === 'overdue')
+  const todaysPendingDoses = pendingDoses.filter(d => d.status === 'pending')
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 md:grid-cols-2">
-        <div>
-          <label className="block text-sm font-medium mb-2">Peptide</label>
-          <select
-            value={peptide}
-            onChange={(e) => setPeptide(e.target.value)}
-            className="w-full rounded-lg border border-border bg-muted px-3 py-2.5 text-sm focus:border-primary focus:ring-1 focus:ring-primary"
-          >
-            <option>Retatrutide</option>
-            <option>BPC-157</option>
-            <option>MOTS-c</option>
-            <option>TB-500</option>
-            <option>Tesamorelin</option>
-            <option>Epithalon</option>
-            <option>GHK-Cu</option>
-            <option>SS-31</option>
-          </select>
-        </div>
+      <p className="text-sm text-muted-foreground">
+        Select a dose to mark as taken or skipped.
+      </p>
 
+      {/* Overdue Doses */}
+      {overdueDoses.length > 0 && (
         <div>
-          <label className="block text-sm font-medium mb-2">Dosage</label>
-          <div className="flex gap-2">
-            <input
-              type="number"
-              placeholder="250"
-              value={dose}
-              onChange={(e) => setDose(e.target.value)}
-              className="flex-1 rounded-lg border border-border bg-muted px-3 py-2.5 text-sm font-mono tabular-nums focus:border-primary focus:ring-1 focus:ring-primary"
-              step="0.01"
-            />
-            <select
-              value={doseUnit}
-              onChange={(e) => setDoseUnit(e.target.value as "mcg" | "mg" | "IU")}
-              className="rounded-lg border border-border bg-muted px-3 py-2.5 text-sm focus:border-primary focus:ring-1 focus:ring-primary"
-            >
-              <option value="mcg">mcg</option>
-              <option value="mg">mg</option>
-              <option value="IU">IU</option>
-            </select>
+          <div className="flex items-center gap-2 mb-3">
+            <AlertCircle className="h-4 w-4 text-red-500" />
+            <h3 className="text-sm font-medium text-red-500">Overdue</h3>
           </div>
-        </div>
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium mb-2">Injection Site</label>
-        <div>
-          <div className="relative w-full aspect-[2/3] max-w-xs mx-auto rounded-lg border border-border bg-muted/50 p-4">
-            <svg viewBox="0 0 100 100" className="w-full h-full">
-              <circle cx="50" cy="12" r="8" fill="none" stroke="#27272a" strokeWidth="1.5" />
-              <rect x="42" y="20" width="16" height="35" rx="2" fill="none" stroke="#27272a" strokeWidth="1.5" />
-              <line x1="42" y1="25" x2="25" y2="40" stroke="#27272a" strokeWidth="1.5" />
-              <line x1="58" y1="25" x2="75" y2="40" stroke="#27272a" strokeWidth="1.5" />
-              <line x1="45" y1="55" x2="40" y2="85" stroke="#27272a" strokeWidth="1.5" />
-              <line x1="55" y1="55" x2="60" y2="85" stroke="#27272a" strokeWidth="1.5" />
-
-              {sites.map((site) => (
-                <circle
-                  key={site.id}
-                  cx={site.x}
-                  cy={site.y}
-                  r="4"
-                  className={cn(
-                    "cursor-pointer transition-all",
-                    selectedSite === site.id
-                      ? "fill-primary stroke-primary"
-                      : "fill-muted stroke-border hover:fill-primary/20",
-                  )}
-                  strokeWidth="2"
-                  onClick={() => setSelectedSite(site.id)}
-                />
-              ))}
-            </svg>
+          <div className="space-y-2">
+            {overdueDoses.map((dose, idx) => (
+              <DoseActionCard
+                key={`${dose.protocolId}-${dose.scheduledDate}-${dose.doseNumber}-${idx}`}
+                dose={dose}
+                onMarkTaken={() => handleMarkTaken(dose)}
+                onMarkSkipped={() => handleMarkSkipped(dose)}
+              />
+            ))}
           </div>
-
-          {selectedSite && (
-            <p className="text-sm text-center mt-3 font-medium text-primary">
-              {sites.find((s) => s.id === selectedSite)?.label}
-            </p>
-          )}
-        </div>
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium mb-2">Time</label>
-        <input
-          type="time"
-          value={time}
-          onChange={(e) => setTime(e.target.value)}
-          className="w-full rounded-lg border border-border bg-muted px-3 py-2.5 text-sm font-mono tabular-nums focus:border-primary focus:ring-1 focus:ring-primary"
-        />
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium mb-2">Notes (Optional)</label>
-        <textarea
-          placeholder="Any reactions, side effects, or observations..."
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-          className="w-full rounded-lg border border-border bg-muted px-3 py-2.5 text-sm resize-none focus:border-primary focus:ring-1 focus:ring-primary"
-          rows={3}
-        />
-      </div>
-
-      {error && (
-        <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3">
-          <p className="text-sm text-red-500">{error}</p>
         </div>
       )}
 
-      <div className="flex gap-3 justify-end">
+      {/* Today's Pending Doses */}
+      {todaysPendingDoses.length > 0 && (
+        <div>
+          <div className="flex items-center gap-2 mb-3">
+            <Clock className="h-4 w-4 text-primary" />
+            <h3 className="text-sm font-medium">Due Today</h3>
+          </div>
+          <div className="space-y-2">
+            {todaysPendingDoses.map((dose, idx) => (
+              <DoseActionCard
+                key={`${dose.protocolId}-${dose.scheduledDate}-${dose.doseNumber}-${idx}`}
+                dose={dose}
+                onMarkTaken={() => handleMarkTaken(dose)}
+                onMarkSkipped={() => handleMarkSkipped(dose)}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="flex justify-end pt-2">
         <button
           onClick={onClose}
           className="px-4 py-2.5 rounded-lg border border-border text-sm font-medium hover:bg-muted transition-colors"
         >
           Cancel
         </button>
+      </div>
+    </div>
+  )
+}
+
+// Card component for each actionable dose
+function DoseActionCard({
+  dose,
+  onMarkTaken,
+  onMarkSkipped
+}: {
+  dose: ScheduledDose
+  onMarkTaken: () => void
+  onMarkSkipped: () => void
+}) {
+  return (
+    <div className={cn(
+      "flex items-center justify-between p-4 rounded-lg border",
+      dose.status === 'overdue'
+        ? "border-red-500/30 bg-red-500/5"
+        : "border-border bg-card"
+    )}>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 mb-1">
+          <span className="font-medium truncate">{dose.peptideName}</span>
+          {dose.dosesPerDay > 1 && (
+            <span className="text-xs text-muted-foreground">
+              (Dose {dose.doseNumber}/{dose.dosesPerDay})
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-3 text-sm text-muted-foreground">
+          <span className="font-mono tabular-nums">{dose.dose}</span>
+          <TimingBadge timing={dose.timing} size="sm" variant="subtle" />
+        </div>
+        {dose.status === 'overdue' && (
+          <p className="text-xs text-red-500 mt-1">
+            From {new Date(dose.scheduledDate).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+          </p>
+        )}
+      </div>
+      <div className="flex items-center gap-2 ml-4">
         <button
-          onClick={handleSubmit}
-          disabled={loading || authLoading}
-          className="px-4 py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center gap-2"
+          onClick={onMarkSkipped}
+          className="p-2 rounded-lg border border-border hover:bg-muted transition-colors"
+          title="Skip"
         >
-          {(loading || authLoading) && <Loader2 className="h-4 w-4 animate-spin" />}
-          Log Injection
+          <X className="h-4 w-4 text-muted-foreground" />
+        </button>
+        <button
+          onClick={onMarkTaken}
+          className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-green-500 text-white text-sm font-medium hover:bg-green-600 transition-colors"
+        >
+          <Check className="h-4 w-4" />
+          Take
         </button>
       </div>
     </div>
   )
 }
+
+type FormProps = { user: ReturnType<typeof useAuth>["user"], authLoading: boolean, onClose: () => void }
 
 function MealForm({ user, authLoading, onClose }: FormProps) {
   const supabase = createClient()

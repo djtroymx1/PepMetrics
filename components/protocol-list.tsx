@@ -1,33 +1,69 @@
 "use client"
 
-import { useState } from "react"
-import { Calendar, Clock, Target, ChevronRight, MoreVertical, Plus, Loader2 } from "lucide-react"
+import { useState, useEffect, useCallback } from "react"
+import { Clock, MoreVertical, Plus, Loader2, Pause, Play, Trash2, ChevronDown, ChevronUp, AlertCircle, Check } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { useProtocols } from "@/hooks/use-protocols"
+import { getProtocols, updateProtocol, deleteProtocol as removeProtocol, getDoseLogs, markDoseAsTaken } from "@/lib/storage"
+import { getPeptideById } from "@/lib/peptides"
+import { getFrequencySummary, isDueToday, getCyclePhase, getDosesToday } from "@/lib/scheduling"
 import { AddProtocolModal } from "@/components/add-protocol-modal"
-import type { Protocol } from "@/types/database"
-
-// Calculate progress based on start date and duration
-function calculateProgress(startDate: string, duration: string | null): number {
-  if (!duration || duration.toLowerCase() === 'ongoing') return 100
-
-  const start = new Date(startDate)
-  const now = new Date()
-  const daysSinceStart = Math.floor((now.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
-
-  // Parse duration (e.g., "8 weeks", "24 weeks", "12 weeks")
-  const match = duration.match(/(\d+)\s*weeks?/i)
-  if (!match) return 50
-
-  const totalDays = parseInt(match[1]) * 7
-  const progress = Math.min(100, Math.round((daysSinceStart / totalDays) * 100))
-  return Math.max(0, progress)
-}
+import { TimingBadge } from "@/components/timing-badge"
+import type { Protocol, DoseLog } from "@/lib/types"
 
 export function ProtocolList() {
-  const { protocols, loading, error } = useProtocols()
+  const [protocols, setProtocols] = useState<Protocol[]>([])
+  const [doseLogs, setDoseLogs] = useState<DoseLog[]>([])
+  const [loading, setLoading] = useState(true)
   const [selectedProtocol, setSelectedProtocol] = useState<string | null>(null)
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+  const [showPaused, setShowPaused] = useState(false)
+
+  const loadData = useCallback(() => {
+    setProtocols(getProtocols())
+    setDoseLogs(getDoseLogs())
+    setLoading(false)
+  }, [])
+
+  useEffect(() => {
+    loadData()
+  }, [loadData])
+
+  const handleProtocolAdded = () => {
+    loadData()
+  }
+
+  const handleToggleStatus = (id: string) => {
+    const protocol = protocols.find(p => p.id === id)
+    if (!protocol) return
+
+    const newStatus = protocol.status === 'active' ? 'paused' : 'active'
+    updateProtocol(id, { status: newStatus })
+    loadData()
+  }
+
+  const handleDelete = (id: string) => {
+    if (confirm('Are you sure you want to delete this protocol?')) {
+      removeProtocol(id)
+      loadData()
+    }
+  }
+
+  const handleMarkTaken = (protocolId: string) => {
+    const protocol = protocols.find(p => p.id === protocolId)
+    if (!protocol) return
+
+    const peptide = getPeptideById(protocol.peptideId)
+    const peptideName = protocol.customPeptideName || peptide?.name || 'Unknown'
+    const today = new Date().toISOString().split('T')[0]
+
+    // Find which dose number to log
+    const todaysDoses = getDosesToday([protocol], doseLogs)
+    const nextPendingDose = todaysDoses.find(d => d.status === 'pending' || d.status === 'overdue')
+    const doseNumber = nextPendingDose?.doseNumber || 1
+
+    markDoseAsTaken(protocolId, today, doseNumber, peptideName, protocol.dose)
+    loadData()
+  }
 
   if (loading) {
     return (
@@ -37,15 +73,8 @@ export function ProtocolList() {
     )
   }
 
-  if (error) {
-    return (
-      <div className="rounded-xl border border-red-500/30 bg-red-500/5 p-6 text-center">
-        <p className="text-red-500">Error loading protocols: {error}</p>
-      </div>
-    )
-  }
-
   const activeProtocols = protocols.filter((p) => p.status === "active")
+  const pausedProtocols = protocols.filter((p) => p.status === "paused")
 
   if (protocols.length === 0) {
     return (
@@ -69,7 +98,11 @@ export function ProtocolList() {
             Add Protocol
           </button>
         </div>
-        <AddProtocolModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} />
+        <AddProtocolModal
+          isOpen={isAddModalOpen}
+          onClose={() => setIsAddModalOpen(false)}
+          onProtocolAdded={handleProtocolAdded}
+        />
       </div>
     )
   }
@@ -93,98 +126,232 @@ export function ProtocolList() {
       </div>
 
       <div className="space-y-3">
-        {protocols.map((protocol) => {
-          const progress = calculateProgress(protocol.start_date, protocol.duration)
-
-          return (
-            <div
-              key={protocol.id}
-              className={cn(
-                "rounded-xl border border-border bg-card p-5 cursor-pointer transition-all hover:border-primary/50",
-                selectedProtocol === protocol.id && "ring-2 ring-primary/30 border-primary/50",
-              )}
-              onClick={() => setSelectedProtocol(protocol.id)}
-            >
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <h3 className="font-semibold">{protocol.name}</h3>
-                    <span
-                      className={cn(
-                        "rounded-full px-2 py-0.5 text-xs font-medium",
-                        protocol.status === "active" && "bg-green-500/10 text-green-500",
-                        protocol.status === "paused" && "bg-amber-500/10 text-amber-500",
-                        protocol.status === "completed" && "bg-muted text-muted-foreground",
-                        protocol.status === "archived" && "bg-muted text-muted-foreground",
-                      )}
-                    >
-                      {protocol.status}
-                    </span>
-                  </div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {protocol.peptides.map((peptide) => (
-                      <span key={peptide} className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-md">
-                        {peptide}
-                      </span>
-                    ))}
-                  </div>
-                  {protocol.phase && (
-                    <p className="text-xs text-muted-foreground mt-2">{protocol.phase}</p>
-                  )}
-                </div>
-                <button className="p-1 hover:bg-muted rounded-lg transition-colors">
-                  <MoreVertical className="h-4 w-4 text-muted-foreground" />
-                </button>
-              </div>
-
-              <div className="grid grid-cols-3 gap-4 mb-4">
-                <div className="flex items-center gap-2">
-                  <Target className="h-4 w-4 text-muted-foreground" />
-                  <div>
-                    <p className="text-xs text-muted-foreground">Dosage</p>
-                    <p className="text-sm font-medium font-mono tabular-nums">{protocol.dosage || '-'}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-muted-foreground" />
-                  <div>
-                    <p className="text-xs text-muted-foreground">Frequency</p>
-                    <p className="text-sm font-medium">{protocol.frequency}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-muted-foreground" />
-                  <div>
-                    <p className="text-xs text-muted-foreground">Duration</p>
-                    <p className="text-sm font-medium">{protocol.duration || 'Ongoing'}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs text-muted-foreground">Progress</span>
-                  <span className="text-xs font-medium tabular-nums font-mono">{progress}%</span>
-                </div>
-                <div className="relative h-2 w-full overflow-hidden rounded-full bg-muted">
-                  <div
-                    className="h-full bg-primary transition-all duration-300"
-                    style={{ width: `${progress}%` }}
-                  />
-                </div>
-              </div>
-
-              {selectedProtocol === protocol.id && (
-                <button className="mt-4 flex items-center gap-2 text-sm font-medium text-primary hover:underline">
-                  View Details
-                  <ChevronRight className="h-4 w-4" />
-                </button>
-              )}
-            </div>
-          )
-        })}
+        {activeProtocols.map((protocol) => (
+          <ProtocolCard
+            key={protocol.id}
+            protocol={protocol}
+            doseLogs={doseLogs}
+            isSelected={selectedProtocol === protocol.id}
+            onSelect={() => setSelectedProtocol(protocol.id)}
+            onToggleStatus={() => handleToggleStatus(protocol.id)}
+            onDelete={() => handleDelete(protocol.id)}
+            onMarkTaken={() => handleMarkTaken(protocol.id)}
+          />
+        ))}
       </div>
-      <AddProtocolModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} />
+
+      {/* Paused Protocols Section */}
+      {pausedProtocols.length > 0 && (
+        <div className="mt-6">
+          <button
+            onClick={() => setShowPaused(!showPaused)}
+            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-3"
+          >
+            {showPaused ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            Paused Protocols ({pausedProtocols.length})
+          </button>
+
+          {showPaused && (
+            <div className="space-y-3">
+              {pausedProtocols.map((protocol) => (
+                <ProtocolCard
+                  key={protocol.id}
+                  protocol={protocol}
+                  doseLogs={doseLogs}
+                  isSelected={selectedProtocol === protocol.id}
+                  onSelect={() => setSelectedProtocol(protocol.id)}
+                  onToggleStatus={() => handleToggleStatus(protocol.id)}
+                  onDelete={() => handleDelete(protocol.id)}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      <AddProtocolModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onProtocolAdded={handleProtocolAdded}
+      />
+    </div>
+  )
+}
+
+interface ProtocolCardProps {
+  protocol: Protocol
+  doseLogs: DoseLog[]
+  isSelected: boolean
+  onSelect: () => void
+  onToggleStatus: () => void
+  onDelete: () => void
+  onMarkTaken?: () => void
+}
+
+function ProtocolCard({
+  protocol,
+  doseLogs,
+  isSelected,
+  onSelect,
+  onToggleStatus,
+  onDelete,
+  onMarkTaken,
+}: ProtocolCardProps) {
+  const [showMenu, setShowMenu] = useState(false)
+  const peptide = getPeptideById(protocol.peptideId)
+  const peptideName = protocol.customPeptideName || peptide?.name || 'Unknown Peptide'
+  const frequencySummary = getFrequencySummary(protocol)
+  const dueToday = protocol.status === 'active' && isDueToday(protocol, doseLogs)
+  const cyclePhase = protocol.frequencyType === 'cycling' ? getCyclePhase(protocol) : null
+
+  // Check how many doses taken today
+  const todaysDoses = getDosesToday([protocol], doseLogs)
+  const dosesTakenToday = todaysDoses.filter(d => d.status === 'taken').length
+  const allDosesTaken = dosesTakenToday >= protocol.dosesPerDay
+
+  return (
+    <div
+      className={cn(
+        "rounded-xl border bg-card p-5 transition-all cursor-pointer",
+        protocol.status === 'paused' && "opacity-60",
+        dueToday && !allDosesTaken && "border-primary/50 bg-primary/5",
+        isSelected && "ring-2 ring-primary/30 border-primary/50",
+      )}
+      onClick={onSelect}
+    >
+      <div className="flex items-start justify-between mb-4">
+        <div className="flex-1">
+          <div className="flex items-center gap-2 mb-1">
+            <h3 className="font-semibold">{peptideName}</h3>
+            <span
+              className={cn(
+                "rounded-full px-2 py-0.5 text-xs font-medium",
+                protocol.status === "active" && "bg-green-500/10 text-green-500",
+                protocol.status === "paused" && "bg-amber-500/10 text-amber-500",
+              )}
+            >
+              {protocol.status}
+            </span>
+            {cyclePhase && (
+              <span
+                className={cn(
+                  "rounded-full px-2 py-0.5 text-xs font-medium",
+                  cyclePhase === 'on' ? "bg-blue-500/10 text-blue-500" : "bg-muted text-muted-foreground"
+                )}
+              >
+                {cyclePhase === 'on' ? 'ON phase' : 'OFF phase'}
+              </span>
+            )}
+          </div>
+
+          {/* Dose and frequency info */}
+          <div className="flex items-center gap-4 text-sm text-muted-foreground mb-2">
+            <span className="font-mono tabular-nums">{protocol.dose}</span>
+            <span className="flex items-center gap-1">
+              <Clock className="h-3.5 w-3.5" />
+              {frequencySummary}
+            </span>
+            {protocol.dosesPerDay > 1 && (
+              <span>{protocol.dosesPerDay}x daily</span>
+            )}
+          </div>
+
+          {/* Timing badge */}
+          <TimingBadge
+            timing={protocol.timingPreference}
+            showFastingIcon={peptide?.requiresFasting}
+            size="sm"
+          />
+        </div>
+
+        {/* Actions */}
+        <div className="flex items-center gap-2">
+          {/* Mark as taken button - only show if due today and not all doses taken */}
+          {dueToday && !allDosesTaken && onMarkTaken && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                onMarkTaken()
+              }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-green-500 text-white text-sm font-medium hover:bg-green-600 transition-colors"
+            >
+              <Check className="h-4 w-4" />
+              Take{protocol.dosesPerDay > 1 ? ` (${dosesTakenToday + 1}/${protocol.dosesPerDay})` : ''}
+            </button>
+          )}
+
+          {/* All doses taken indicator */}
+          {allDosesTaken && (
+            <span className="flex items-center gap-1 px-2 py-1 rounded-lg bg-green-500/10 text-green-500 text-xs font-medium">
+              <Check className="h-3 w-3" />
+              Done today
+            </span>
+          )}
+
+          {/* Menu button */}
+          <div className="relative">
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                setShowMenu(!showMenu)
+              }}
+              className="p-1 hover:bg-muted rounded-lg transition-colors"
+            >
+              <MoreVertical className="h-4 w-4 text-muted-foreground" />
+            </button>
+
+            {showMenu && (
+              <>
+                <div
+                  className="fixed inset-0 z-10"
+                  onClick={() => setShowMenu(false)}
+                />
+                <div className="absolute right-0 top-8 z-20 w-40 rounded-lg border border-border bg-card shadow-lg py-1">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onToggleStatus()
+                      setShowMenu(false)
+                    }}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-muted transition-colors"
+                  >
+                    {protocol.status === 'active' ? (
+                      <>
+                        <Pause className="h-4 w-4" />
+                        Pause
+                      </>
+                    ) : (
+                      <>
+                        <Play className="h-4 w-4" />
+                        Resume
+                      </>
+                    )}
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onDelete()
+                      setShowMenu(false)
+                    }}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-500 hover:bg-red-500/10 transition-colors"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    Delete
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Due today indicator */}
+      {dueToday && !allDosesTaken && (
+        <div className="flex items-center gap-1.5 text-xs text-primary">
+          <AlertCircle className="h-3 w-3" />
+          <span>Due today</span>
+        </div>
+      )}
     </div>
   )
 }

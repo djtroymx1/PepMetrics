@@ -1,26 +1,36 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Clock, CheckCircle, AlertCircle } from "lucide-react"
+import { Clock, CheckCircle, AlertCircle, Play } from "lucide-react"
 
 interface FastingTimerProps {
   fastingStartTime: Date
   targetHours: number
+  fastingRequiredPeptides?: string[]
+  onStartFasting?: () => void
 }
 
-export function FastingTimer({ fastingStartTime, targetHours }: FastingTimerProps) {
+export function FastingTimer({
+  fastingStartTime,
+  targetHours,
+  fastingRequiredPeptides = [],
+  onStartFasting,
+}: FastingTimerProps) {
   const [elapsed, setElapsed] = useState(0)
   const [percentage, setPercentage] = useState(0)
 
   useEffect(() => {
-    const interval = setInterval(() => {
+    const updateTimer = () => {
       const now = new Date()
       const diff = now.getTime() - fastingStartTime.getTime()
       const hours = diff / (1000 * 60 * 60)
 
       setElapsed(hours)
       setPercentage(Math.min((hours / targetHours) * 100, 100))
-    }, 1000)
+    }
+
+    updateTimer()
+    const interval = setInterval(updateTimer, 1000)
 
     return () => clearInterval(interval)
   }, [fastingStartTime, targetHours])
@@ -31,6 +41,10 @@ export function FastingTimer({ fastingStartTime, targetHours }: FastingTimerProp
   const remainingHours = Math.floor(remaining)
   const remainingMinutes = Math.floor((remaining - remainingHours) * 60)
   const isFasted = elapsed >= 2 // Most peptides need 2+ hours fasted
+
+  // Display peptides (up to 3)
+  const displayPeptides = fastingRequiredPeptides.slice(0, 3)
+  const hasMorePeptides = fastingRequiredPeptides.length > 3
 
   return (
     <div className="rounded-2xl bg-card p-6 border border-border h-full">
@@ -73,17 +87,37 @@ export function FastingTimer({ fastingStartTime, targetHours }: FastingTimerProp
         />
       </div>
 
-      {isFasted && (
-        <div className="text-xs text-green-500 flex items-center gap-1">
-          <CheckCircle className="h-3 w-3" />
-          Safe for: Retatrutide, MOTS-c, Tesamorelin
-        </div>
+      {/* Fasting-required peptides from protocols */}
+      {fastingRequiredPeptides.length > 0 ? (
+        <>
+          {isFasted && (
+            <div className="text-xs text-green-500 flex items-center gap-1 flex-wrap">
+              <CheckCircle className="h-3 w-3 shrink-0" />
+              <span>Safe for: {displayPeptides.join(', ')}{hasMorePeptides ? ` +${fastingRequiredPeptides.length - 3} more` : ''}</span>
+            </div>
+          )}
+          {!isFasted && (
+            <div className="text-xs text-amber-500 flex items-center gap-1 flex-wrap">
+              <AlertCircle className="h-3 w-3 shrink-0" />
+              <span>Wait before: {displayPeptides.join(', ')}{hasMorePeptides ? ` +${fastingRequiredPeptides.length - 3} more` : ''}</span>
+            </div>
+          )}
+        </>
+      ) : (
+        <p className="text-xs text-muted-foreground">
+          No fasting-required peptides in active protocols
+        </p>
       )}
-      {!isFasted && (
-        <div className="text-xs text-amber-500 flex items-center gap-1">
-          <AlertCircle className="h-3 w-3" />
-          Wait before: Retatrutide, MOTS-c (need 2h+ fasted)
-        </div>
+
+      {/* Start fasting button */}
+      {onStartFasting && (
+        <button
+          onClick={onStartFasting}
+          className="mt-4 w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-border text-sm font-medium hover:bg-muted transition-colors"
+        >
+          <Play className="h-4 w-4" />
+          Start New Fast
+        </button>
       )}
     </div>
   )
