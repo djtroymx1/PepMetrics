@@ -16,14 +16,7 @@
       "Bash(timeout:*)",
       "Bash(git push:*)",
       "Bash(git branch:*)",
-      "Bash(git revert:*)",
-      "Bash(findstr:*)",
-      "Bash(tree:*)",
-      "Skill(pepmetrics-dev)",
-      "Bash(taskkill:*)",
-      "Bash(node screenshot-collage.js:*)",
-      "Bash(npm uninstall:*)",
-      "Bash(del \"c:\\Users\\fladj\\PepMetrics\\pepmetrics\\screenshot-collage.js\")"
+      "Bash(git revert:*)"
     ],
     "deny": [],
     "ask": []
