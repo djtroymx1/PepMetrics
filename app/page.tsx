@@ -4,6 +4,7 @@ import { FastingTimer } from "@/components/fasting-timer"
 import { CircularGauge } from "@/components/circular-gauge"
 import { MetricCard } from "@/components/metric-card"
 import { ScheduleCard } from "@/components/schedule-card"
+import { TremorTest } from "@/components/tremor-test"
 import { Weight, Heart } from "lucide-react"
 
 export default function DashboardPage() {
@@ -115,6 +116,11 @@ export default function DashboardPage() {
                 <div className="absolute left-[45%] w-24 h-24 border-4 border-white/50 rounded-full" />
               </div>
             </div>
+          </div>
+
+          {/* Tremor Test Component */}
+          <div className="mb-6">
+            <TremorTest />
           </div>
 
           {/* Schedule and small metrics */}

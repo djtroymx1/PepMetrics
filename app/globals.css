@@ -1,6 +1,9 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+/* Include Tremor component styles */
+@source "../node_modules/@tremor/react";
+
 @custom-variant dark (&:is(.dark *));
 
 :root {
@@ -40,6 +43,25 @@
   --color-sleep: #8b5cf6;
   --color-nutrition: #22c55e;
   --color-protocol: #14b8a6;
+
+  /* Tremor theme colors - light mode */
+  --tremor-brand-faint: #eff6ff;
+  --tremor-brand-muted: #bfdbfe;
+  --tremor-brand-subtle: #60a5fa;
+  --tremor-brand-default: #3b82f6;
+  --tremor-brand-emphasis: #1d4ed8;
+  --tremor-brand-inverted: #ffffff;
+  --tremor-background-muted: #f9fafb;
+  --tremor-background-subtle: #f3f4f6;
+  --tremor-background-default: #ffffff;
+  --tremor-background-emphasis: #374151;
+  --tremor-border-default: #e5e7eb;
+  --tremor-ring-default: #e5e7eb;
+  --tremor-content-subtle: #9ca3af;
+  --tremor-content-default: #6b7280;
+  --tremor-content-emphasis: #374151;
+  --tremor-content-strong: #111827;
+  --tremor-content-inverted: #ffffff;
 }
 
 .dark {
@@ -70,6 +92,25 @@
   --sidebar-accent-foreground: #fafafa;
   --sidebar-border: #27272a;
   --sidebar-ring: #3f3f46;
+
+  /* Tremor theme colors - dark mode */
+  --tremor-brand-faint: #0b1229;
+  --tremor-brand-muted: #172554;
+  --tremor-brand-subtle: #1e40af;
+  --tremor-brand-default: #3b82f6;
+  --tremor-brand-emphasis: #60a5fa;
+  --tremor-brand-inverted: #030712;
+  --tremor-background-muted: #131a2b;
+  --tremor-background-subtle: #1f2937;
+  --tremor-background-default: #111827;
+  --tremor-background-emphasis: #d1d5db;
+  --tremor-border-default: #374151;
+  --tremor-ring-default: #374151;
+  --tremor-content-subtle: #4b5563;
+  --tremor-content-default: #6b7280;
+  --tremor-content-emphasis: #e5e7eb;
+  --tremor-content-strong: #f9fafb;
+  --tremor-content-inverted: #000000;
 }
 
 @theme inline {
