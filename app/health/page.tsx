@@ -4,21 +4,36 @@ import { SleepChart } from "@/components/sleep-chart"
 import { HRVChart } from "@/components/hrv-chart"
 import { ActivityChart } from "@/components/activity-chart"
 import { MetricCard } from "@/components/metric-card"
+import { GarminConnect } from "@/components/garmin-connect"
 import { Moon, Heart, Zap, Activity, Footprints, Flame } from "lucide-react"
 
 export default function HealthPage() {
+  // This would come from your auth/database state
+  const isGarminConnected = false
+
   return (
     <div className="min-h-screen">
       <AppSidebar />
       <MobileNav />
 
       <main className="lg:pl-64 pb-20 lg:pb-0">
-        <div className="p-6 lg:p-8">
+        <div className="p-6 lg:p-8 max-w-6xl mx-auto">
           {/* Header */}
           <div className="mb-8">
             <h1 className="text-3xl font-semibold text-balance">Health Metrics</h1>
-            <p className="text-text-secondary mt-1">Data synced from Garmin Connect</p>
+            <p className="text-muted-foreground mt-1">
+              {isGarminConnected 
+                ? "Data synced from Garmin Connect" 
+                : "Connect your Garmin to sync health data"}
+            </p>
           </div>
+
+          {/* Garmin Connection Card - Show prominently if not connected */}
+          {!isGarminConnected && (
+            <div className="mb-8">
+              <GarminConnect />
+            </div>
+          )}
 
           {/* Quick Stats */}
           <div className="grid gap-4 mb-6 grid-cols-2 md:grid-cols-3 lg:grid-cols-6">

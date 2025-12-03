@@ -25,6 +25,7 @@ const navigation = [
   { name: "Calendar", href: "/calendar", icon: Calendar },
   { name: "AI Insights", href: "/insights", icon: Sparkles },
   { name: "Bloodwork", href: "/bloodwork", icon: FlaskConical },
+  { name: "Settings", href: "/settings", icon: Settings },
 ]
 
 export function AppSidebar() {
