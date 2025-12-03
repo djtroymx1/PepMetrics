@@ -15,6 +15,7 @@ type LogType = "injection" | "meal" | "weight" | "water"
 
 export function QuickLogModal({ isOpen, onClose }: QuickLogModalProps) {
   const [logType, setLogType] = useState<LogType>("injection")
+  const { user, loading: authLoading } = useAuth()
 
   if (!isOpen) return null
 
@@ -59,18 +60,19 @@ export function QuickLogModal({ isOpen, onClose }: QuickLogModalProps) {
 
         {/* Content */}
         <div className="p-6">
-          {logType === "injection" && <InjectionForm onClose={onClose} />}
-          {logType === "meal" && <MealForm onClose={onClose} />}
-          {logType === "weight" && <WeightForm onClose={onClose} />}
-          {logType === "water" && <WaterForm onClose={onClose} />}
+          {logType === "injection" && <InjectionForm user={user} authLoading={authLoading} onClose={onClose} />}
+          {logType === "meal" && <MealForm user={user} authLoading={authLoading} onClose={onClose} />}
+          {logType === "weight" && <WeightForm user={user} authLoading={authLoading} onClose={onClose} />}
+          {logType === "water" && <WaterForm user={user} authLoading={authLoading} onClose={onClose} />}
         </div>
       </div>
     </div>
   )
 }
 
-function InjectionForm({ onClose }: { onClose: () => void }) {
-  const { user } = useAuth()
+type FormProps = { user: ReturnType<typeof useAuth>["user"], authLoading: boolean, onClose: () => void }
+
+function InjectionForm({ user, authLoading, onClose }: FormProps) {
   const supabase = createClient()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -83,6 +85,10 @@ function InjectionForm({ onClose }: { onClose: () => void }) {
   const [notes, setNotes] = useState("")
 
   const handleSubmit = async () => {
+    if (authLoading) {
+      setError("Checking session, please wait")
+      return
+    }
     if (!user) {
       setError("You must be logged in")
       return
@@ -246,10 +252,10 @@ function InjectionForm({ onClose }: { onClose: () => void }) {
         </button>
         <button
           onClick={handleSubmit}
-          disabled={loading}
+          disabled={loading || authLoading}
           className="px-4 py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center gap-2"
         >
-          {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+          {(loading || authLoading) && <Loader2 className="h-4 w-4 animate-spin" />}
           Log Injection
         </button>
       </div>
@@ -257,8 +263,7 @@ function InjectionForm({ onClose }: { onClose: () => void }) {
   )
 }
 
-function MealForm({ onClose }: { onClose: () => void }) {
-  const { user } = useAuth()
+function MealForm({ user, authLoading, onClose }: FormProps) {
   const supabase = createClient()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -270,6 +275,10 @@ function MealForm({ onClose }: { onClose: () => void }) {
   const [description, setDescription] = useState("")
 
   const handleSubmit = async () => {
+    if (authLoading) {
+      setError("Checking session, please wait")
+      return
+    }
     if (!user) {
       setError("You must be logged in")
       return
@@ -371,10 +380,10 @@ function MealForm({ onClose }: { onClose: () => void }) {
         </button>
         <button
           onClick={handleSubmit}
-          disabled={loading}
+          disabled={loading || authLoading}
           className="px-4 py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center gap-2"
         >
-          {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+          {(loading || authLoading) && <Loader2 className="h-4 w-4 animate-spin" />}
           Log Meal
         </button>
       </div>
@@ -382,8 +391,7 @@ function MealForm({ onClose }: { onClose: () => void }) {
   )
 }
 
-function WeightForm({ onClose }: { onClose: () => void }) {
-  const { user } = useAuth()
+function WeightForm({ user, authLoading, onClose }: FormProps) {
   const supabase = createClient()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -394,6 +402,10 @@ function WeightForm({ onClose }: { onClose: () => void }) {
   const [notes, setNotes] = useState("")
 
   const handleSubmit = async () => {
+    if (authLoading) {
+      setError("Checking session, please wait")
+      return
+    }
     if (!user) {
       setError("You must be logged in")
       return
@@ -487,10 +499,10 @@ function WeightForm({ onClose }: { onClose: () => void }) {
         </button>
         <button
           onClick={handleSubmit}
-          disabled={loading}
+          disabled={loading || authLoading}
           className="px-4 py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center gap-2"
         >
-          {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+          {(loading || authLoading) && <Loader2 className="h-4 w-4 animate-spin" />}
           Log Weight
         </button>
       </div>
@@ -498,14 +510,17 @@ function WeightForm({ onClose }: { onClose: () => void }) {
   )
 }
 
-function WaterForm({ onClose }: { onClose: () => void }) {
-  const { user } = useAuth()
+function WaterForm({ user, authLoading, onClose }: FormProps) {
   const supabase = createClient()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [glasses, setGlasses] = useState(0)
 
   const handleSubmit = async () => {
+    if (authLoading) {
+      setError("Checking session, please wait")
+      return
+    }
     if (!user) {
       setError("You must be logged in")
       return
@@ -596,10 +611,10 @@ function WaterForm({ onClose }: { onClose: () => void }) {
         </button>
         <button
           onClick={handleSubmit}
-          disabled={loading}
+          disabled={loading || authLoading}
           className="px-4 py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center gap-2"
         >
-          {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+          {(loading || authLoading) && <Loader2 className="h-4 w-4 animate-spin" />}
           Log Water
         </button>
       </div>
