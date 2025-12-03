@@ -5,7 +5,15 @@ import { CircularGauge } from "@/components/circular-gauge"
 import { MetricCard } from "@/components/metric-card"
 import { ScheduleCard } from "@/components/schedule-card"
 import { TremorTest } from "@/components/tremor-test"
+import { HealthSparkCard } from "@/components/health-spark-card"
 import { Weight, Heart } from "lucide-react"
+
+// Sample heart rate data for the spark chart
+const heartRateData = [
+  { value: 68 }, { value: 72 }, { value: 85 }, { value: 92 },
+  { value: 78 }, { value: 65 }, { value: 70 }, { value: 88 },
+  { value: 95 }, { value: 82 }, { value: 75 }, { value: 63 },
+]
 
 export default function DashboardPage() {
   const fastingStartTime = new Date(Date.now() - 14 * 60 * 60 * 1000) // 14 hours ago
@@ -46,34 +54,18 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Heart rate card - coral/red */}
-            <div className="rounded-3xl bg-gradient-to-br from-[#f43f5e] to-[#fb7185] p-6 text-white shadow-lg">
-              <div className="mb-4">
-                <p className="text-sm font-medium opacity-90 mb-1">Heart Rate</p>
-              </div>
-              <div className="relative h-32 mb-4 flex items-center justify-center">
-                <svg viewBox="0 0 100 40" className="w-full h-20 opacity-80">
-                  <polyline
-                    points="0,20 20,20 25,10 30,30 35,20 40,20 45,10 50,30 55,20 75,20"
-                    fill="none"
-                    stroke="white"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </div>
-              <div className="space-y-1">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="opacity-90">Lowest</span>
-                  <span className="font-mono font-semibold">63 bpm</span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="opacity-90">Highest</span>
-                  <span className="font-mono font-semibold">140 bpm</span>
-                </div>
-              </div>
-            </div>
+            {/* Heart rate card - coral/red with Tremor spark chart */}
+            <HealthSparkCard
+              title="Heart Rate"
+              value={75}
+              unit="bpm"
+              data={heartRateData}
+              gradient="rose"
+              stats={[
+                { label: "Lowest", value: "63 bpm" },
+                { label: "Highest", value: "140 bpm" },
+              ]}
+            />
           </div>
 
           {/* Second row - compliance and sleep cards */}

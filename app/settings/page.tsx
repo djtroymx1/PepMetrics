@@ -1,18 +1,20 @@
 import { AppSidebar } from "@/components/app-sidebar"
 import { MobileNav } from "@/components/mobile-nav"
-import { 
-  Settings, 
-  User, 
-  Bell, 
-  Shield, 
-  Download, 
+import { ThemeToggle } from "@/components/theme-toggle"
+import {
+  Settings,
+  User,
+  Bell,
+  Shield,
+  Download,
   Trash2,
   Watch,
   Smartphone,
   FileText,
   ChevronRight,
   CheckCircle,
-  ExternalLink
+  ExternalLink,
+  Palette
 } from "lucide-react"
 
 const integrations = [
@@ -101,6 +103,25 @@ export default function SettingsPage() {
                       <option>Metric (kg, ml)</option>
                     </select>
                   </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Appearance Section */}
+            <div className="rounded-xl border border-border bg-card overflow-hidden">
+              <div className="px-5 py-4 border-b border-border bg-muted/30">
+                <div className="flex items-center gap-2">
+                  <Palette className="h-4 w-4 text-muted-foreground" />
+                  <h2 className="font-semibold">Appearance</h2>
+                </div>
+              </div>
+              <div className="p-5">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium">Dark Mode</p>
+                    <p className="text-sm text-muted-foreground">Toggle between light and dark themes</p>
+                  </div>
+                  <ThemeToggle />
                 </div>
               </div>
             </div>
