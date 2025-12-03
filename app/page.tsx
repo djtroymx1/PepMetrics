@@ -1,57 +1,21 @@
-"use client"
-
-import { useState } from "react"
 import { AppSidebar } from "@/components/app-sidebar"
 import { MobileNav } from "@/components/mobile-nav"
-import {
-  ActivitySparkCard,
-  SleepSparkCard,
-  WaterTrackerCard,
-  ProtocolDonutCard,
-  FastingProgressCard,
-  MetricBadgeCard,
-  ScheduleTrackerCard,
-} from "@/components/dashboard"
+import { FastingTimer } from "@/components/fasting-timer"
+import { CircularGauge } from "@/components/circular-gauge"
+import { MetricCard } from "@/components/metric-card"
+import { ScheduleCard } from "@/components/schedule-card"
+import { TremorTest } from "@/components/tremor-test"
 import { HealthSparkCard } from "@/components/health-spark-card"
 import { Weight, Heart } from "lucide-react"
 
-// Sample data for charts
-const activityData = [
-  { value: 4200 }, { value: 5100 }, { value: 6800 }, { value: 5900 },
-  { value: 7200 }, { value: 6100 }, { value: 6524 },
-]
-
-const sleepData = [
-  { value: 7.2 }, { value: 6.8 }, { value: 8.1 }, { value: 7.5 },
-  { value: 6.5 }, { value: 7.8 }, { value: 8 },
-]
-
+// Sample heart rate data for the spark chart
 const heartRateData = [
   { value: 68 }, { value: 72 }, { value: 85 }, { value: 92 },
   { value: 78 }, { value: 65 }, { value: 70 }, { value: 88 },
   { value: 95 }, { value: 82 }, { value: 75 }, { value: 63 },
 ]
 
-const weightData = [
-  { value: 188.5 }, { value: 187.8 }, { value: 187.2 }, { value: 186.5 },
-  { value: 186.1 }, { value: 185.8 }, { value: 185.2 },
-]
-
-const hrvData = [
-  { value: 52 }, { value: 55 }, { value: 58 }, { value: 54 },
-  { value: 60 }, { value: 58 }, { value: 62 },
-]
-
-const scheduleItems = [
-  { time: "6:00 AM", type: "injection" as const, title: "BPC-157", details: "250mcg subcutaneous", completed: true },
-  { time: "6:30 AM", type: "meal" as const, title: "Break fast", details: "Post-16h fast", completed: true },
-  { time: "12:00 PM", type: "injection" as const, title: "MOTS-c", details: "5mg subcutaneous", completed: false },
-  { time: "6:00 PM", type: "meal" as const, title: "Last meal", details: "Start fasting window", completed: false },
-  { time: "8:00 PM", type: "injection" as const, title: "TB-500", details: "2.5mg subcutaneous", completed: false },
-]
-
 export default function DashboardPage() {
-  const [waterGlasses, setWaterGlasses] = useState(3)
   const fastingStartTime = new Date(Date.now() - 14 * 60 * 60 * 1000) // 14 hours ago
 
   return (
@@ -63,33 +27,34 @@ export default function DashboardPage() {
         <div className="p-6 lg:p-8 max-w-7xl mx-auto">
           {/* Header */}
           <div className="mb-8">
-            <h1 className="text-4xl font-semibold text-balance mb-2">
-              Good morning, Troy
-            </h1>
-            <p className="text-muted-foreground text-lg">
-              Track your health metrics and peptide protocols
-            </p>
+            <h1 className="text-4xl font-semibold text-balance mb-2">Today's Target</h1>
+            <p className="text-muted-foreground text-lg">Track your health metrics and peptide protocols</p>
           </div>
 
-          {/* First row - Fasting, Activity, Heart Rate */}
           <div className="grid gap-6 mb-6 md:grid-cols-2 lg:grid-cols-4 auto-rows-fr">
-            {/* Large fasting card - spans 2 columns */}
+            {/* Large fasting timer card - spans 2 columns */}
             <div className="lg:col-span-2">
-              <FastingProgressCard
-                fastingStartTime={fastingStartTime}
-                targetHours={16}
-              />
+              <FastingTimer fastingStartTime={fastingStartTime} targetHours={16} />
             </div>
 
-            {/* Activity card */}
-            <ActivitySparkCard
-              steps={6524}
-              goal={10000}
-              activeMinutes={42}
-              data={activityData}
-            />
+            {/* Activity card with yellow accent */}
+            <div className="rounded-3xl bg-gradient-to-br from-[#f59e0b] to-[#fb923c] p-6 text-white shadow-lg">
+              <div className="mb-4">
+                <p className="text-sm font-medium opacity-90 mb-1">Activity</p>
+                <h3 className="text-2xl font-semibold">6524 Steps</h3>
+              </div>
+              <div className="relative h-32 mb-4">
+                <div className="absolute bottom-0 left-0 w-16 h-16 border-4 border-white/30 rounded-2xl" />
+                <div className="absolute bottom-4 left-4 w-20 h-20 border-4 border-white/20 rounded-2xl" />
+                <div className="absolute bottom-8 left-8 w-24 h-24 border-4 border-white/10 rounded-2xl" />
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="opacity-90">Training</span>
+                <span className="font-mono font-semibold">4h</span>
+              </div>
+            </div>
 
-            {/* Heart rate card */}
+            {/* Heart rate card - coral/red with Tremor spark chart */}
             <HealthSparkCard
               title="Heart Rate"
               value={75}
@@ -103,59 +68,76 @@ export default function DashboardPage() {
             />
           </div>
 
-          {/* Second row - Water, Protocol, Sleep */}
-          <div className="grid gap-6 mb-6 md:grid-cols-2 lg:grid-cols-4 auto-rows-fr">
-            {/* Water tracker */}
-            <WaterTrackerCard
-              glasses={waterGlasses}
-              goal={8}
-              onIncrement={() => setWaterGlasses(prev => Math.min(prev + 1, 15))}
-              onDecrement={() => setWaterGlasses(prev => Math.max(prev - 1, 0))}
-            />
+          {/* Second row - compliance and sleep cards */}
+          <div className="grid gap-6 mb-6 md:grid-cols-2 lg:grid-cols-4">
+            {/* Water/Hydration card - indigo */}
+            <div className="rounded-3xl bg-gradient-to-br from-[#6366f1] to-[#818cf8] p-6 text-white shadow-lg">
+              <div className="mb-4">
+                <p className="text-sm font-medium opacity-90 mb-1">Water</p>
+                <h3 className="text-2xl font-semibold">3 glasses</h3>
+              </div>
+              <div className="relative h-28 flex items-center justify-center">
+                <div className="absolute w-20 h-20 border-4 border-white/30 rounded-full" />
+                <div className="absolute w-16 h-16 border-4 border-white/40 rounded-full" />
+                <div className="absolute w-12 h-12 border-4 border-white/50 rounded-full" />
+              </div>
+            </div>
 
             {/* Protocol compliance */}
-            <ProtocolDonutCard
-              completed={12}
-              total={14}
-              peptides={["Retatrutide", "BPC-157", "MOTS-c", "TB-500"]}
-            />
+            <div className="rounded-3xl bg-card p-6 shadow-lg border border-border">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1">Protocol</p>
+                  <h3 className="text-lg font-semibold">This Week</h3>
+                </div>
+              </div>
+              <div className="flex justify-center">
+                <CircularGauge value={12} max={14} label="Injections" color="#14b8a6" />
+              </div>
+            </div>
 
-            {/* Sleep card - spans 2 columns */}
-            <div className="lg:col-span-2">
-              <SleepSparkCard
-                hours={8}
-                quality={85}
-                deepSleep={2.5}
-                data={sleepData}
-              />
+            {/* Sleep card - purple */}
+            <div className="lg:col-span-2 rounded-3xl bg-gradient-to-br from-[#8b5cf6] to-[#a78bfa] p-6 text-white shadow-lg">
+              <div className="mb-4">
+                <p className="text-sm font-medium opacity-90 mb-1">Sleep</p>
+                <h3 className="text-2xl font-semibold">8 hours</h3>
+              </div>
+              <div className="relative h-28 flex items-center justify-center">
+                <div className="absolute left-1/4 w-24 h-24 border-4 border-white/30 rounded-full" />
+                <div className="absolute left-1/3 w-24 h-24 border-4 border-white/40 rounded-full" />
+                <div className="absolute left-[45%] w-24 h-24 border-4 border-white/50 rounded-full" />
+              </div>
             </div>
           </div>
 
-          {/* Third row - Schedule and small metrics */}
+          {/* Tremor Test Component */}
+          <div className="mb-6">
+            <TremorTest />
+          </div>
+
+          {/* Schedule and small metrics */}
           <div className="grid gap-6 lg:grid-cols-3">
             <div className="lg:col-span-2">
-              <ScheduleTrackerCard items={scheduleItems} />
+              <ScheduleCard />
             </div>
 
-            {/* Small metrics */}
+            {/* Small metrics grid */}
             <div className="grid gap-4 grid-cols-2 lg:grid-cols-1 auto-rows-fr">
-              <MetricBadgeCard
+              <MetricCard
                 label="Weight"
                 value={185.2}
                 unit="lbs"
                 icon={Weight}
-                color="emerald"
-                trend={{ value: 2.3, direction: "down", isGood: true }}
-                sparkData={weightData}
+                status="success"
+                trend={{ value: 2.3, direction: "down" }}
               />
-              <MetricBadgeCard
+              <MetricCard
                 label="HRV"
                 value={62}
                 unit="ms"
                 icon={Heart}
-                color="rose"
-                trend={{ value: 8, direction: "up", isGood: true }}
-                sparkData={hrvData}
+                status="success"
+                trend={{ value: 8, direction: "up" }}
               />
             </div>
           </div>

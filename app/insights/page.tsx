@@ -1,8 +1,5 @@
-"use client"
-
 import { AppSidebar } from "@/components/app-sidebar"
 import { MobileNav } from "@/components/mobile-nav"
-import { BadgeDelta } from "@tremor/react"
 import { Sparkles, TrendingUp, Moon, Zap, MessageSquare, ArrowRight, Brain } from "lucide-react"
 
 const insights = [
@@ -55,38 +52,36 @@ export default function InsightsPage() {
       <MobileNav />
 
       <main className="lg:pl-64 pb-20 lg:pb-0">
-        <div className="p-6 lg:p-8 max-w-7xl mx-auto">
+        <div className="p-6 lg:p-8 max-w-6xl mx-auto">
           {/* Header */}
           <div className="mb-8">
-            <div className="flex items-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600">
-                <Sparkles className="h-6 w-6 text-white" />
+            <div className="flex items-center gap-3 mb-2">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent">
+                <Sparkles className="h-5 w-5 text-accent-foreground" />
               </div>
-              <div>
-                <h1 className="text-3xl font-semibold">AI Insights</h1>
-                <p className="text-muted-foreground mt-1">
-                  Personalized analysis and correlations from your tracking data
-                </p>
-              </div>
+              <h1 className="text-3xl font-semibold">AI Insights</h1>
             </div>
+            <p className="text-muted-foreground">
+              Personalized analysis and correlations from your tracking data
+            </p>
           </div>
 
           <div className="grid gap-6 lg:grid-cols-3">
             {/* Insights Column */}
             <div className="lg:col-span-2 space-y-6">
               {/* Weekly Summary Card */}
-              <div className="rounded-2xl border border-violet-500/30 bg-gradient-to-br from-violet-500/5 to-purple-500/5 p-6">
+              <div className="rounded-2xl border border-accent/30 bg-accent/5 p-6">
                 <div className="flex items-start gap-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex-shrink-0">
-                    <Brain className="h-6 w-6 text-white" />
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-accent">
+                    <Brain className="h-6 w-6 text-accent-foreground" />
                   </div>
                   <div className="flex-1">
                     <h3 className="font-semibold text-lg mb-2">Weekly Summary</h3>
                     <p className="text-muted-foreground leading-relaxed">
-                      This week you maintained excellent protocol compliance at 92%. Your sleep quality improved
-                      by 18% compared to last week, likely correlated with consistent morning MOTS-c doses.
-                      Weight trend continues downward at 1.8 lbs/week, which is within healthy range for your
-                      current Retatrutide protocol. Consider logging meals more consistently to unlock deeper
+                      This week you maintained excellent protocol compliance at 92%. Your sleep quality improved 
+                      by 18% compared to last week, likely correlated with consistent morning MOTS-c doses. 
+                      Weight trend continues downward at 1.8 lbs/week, which is within healthy range for your 
+                      current Retatrutide protocol. Consider logging meals more consistently to unlock deeper 
                       nutrition insights.
                     </p>
                   </div>
@@ -102,18 +97,18 @@ export default function InsightsPage() {
                     return (
                       <div
                         key={insight.id}
-                        className="rounded-2xl border border-border bg-card p-5 hover:border-primary/50 hover:shadow-md transition-all"
+                        className="rounded-xl border border-border bg-card p-5 hover:border-primary/50 transition-colors"
                       >
                         <div className="flex items-start gap-4">
-                          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 flex-shrink-0">
+                          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
                             <Icon className="h-5 w-5 text-primary" />
                           </div>
                           <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1 flex-wrap">
+                            <div className="flex items-center gap-2 mb-1">
                               <h3 className="font-medium">{insight.title}</h3>
-                              <span className={`text-xs px-2.5 py-1 rounded-full ${
-                                insight.strength === "strong"
-                                  ? "bg-emerald-500/10 text-emerald-500"
+                              <span className={`text-xs px-2 py-0.5 rounded-full ${
+                                insight.strength === "strong" 
+                                  ? "bg-green-500/10 text-green-500" 
                                   : "bg-amber-500/10 text-amber-500"
                               }`}>
                                 {insight.strength} correlation
@@ -122,19 +117,14 @@ export default function InsightsPage() {
                             <p className="text-sm text-muted-foreground mb-3">
                               {insight.description}
                             </p>
-                            <div className="flex items-center gap-4 text-sm flex-wrap">
+                            <div className="flex items-center gap-4 text-sm">
                               <span className="text-muted-foreground">
-                                Peptide: <span className="text-foreground font-medium">{insight.peptide}</span>
+                                Peptide: <span className="text-foreground">{insight.peptide}</span>
                               </span>
                               <span className="text-muted-foreground">
-                                Metric: <span className="text-foreground font-medium">{insight.metric}</span>
+                                Metric: <span className="text-foreground">{insight.metric}</span>
                               </span>
-                              <BadgeDelta
-                                deltaType={insight.change.startsWith("+") || insight.change.startsWith("-2") ? "increase" : "decrease"}
-                                size="sm"
-                              >
-                                {insight.change}
-                              </BadgeDelta>
+                              <span className="font-mono text-primary font-medium">{insight.change}</span>
                             </div>
                           </div>
                         </div>
@@ -149,9 +139,7 @@ export default function InsightsPage() {
             <div className="lg:col-span-1">
               <div className="rounded-2xl border border-border bg-card p-5 sticky top-6">
                 <div className="flex items-center gap-2 mb-4">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-violet-500/10">
-                    <MessageSquare className="h-4 w-4 text-violet-500" />
-                  </div>
+                  <MessageSquare className="h-5 w-5 text-accent" />
                   <h3 className="font-semibold">Ask About Your Data</h3>
                 </div>
 
@@ -160,21 +148,21 @@ export default function InsightsPage() {
                   <input
                     type="text"
                     placeholder="Ask a question..."
-                    className="w-full rounded-xl border border-border bg-muted px-4 py-3 pr-12 text-sm focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 transition-all"
+                    className="w-full rounded-xl border border-border bg-muted px-4 py-3 pr-10 text-sm focus:border-accent focus:ring-1 focus:ring-accent"
                   />
-                  <button className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg bg-violet-500 text-white hover:bg-violet-600 transition-colors">
+                  <button className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg bg-accent text-accent-foreground hover:bg-accent/90 transition-colors">
                     <ArrowRight className="h-4 w-4" />
                   </button>
                 </div>
 
                 {/* Suggested Questions */}
                 <div>
-                  <p className="text-xs text-muted-foreground mb-3 uppercase tracking-wider">Suggested questions</p>
+                  <p className="text-xs text-muted-foreground mb-3">Suggested questions</p>
                   <div className="space-y-2">
                     {suggestedQuestions.map((question, index) => (
                       <button
                         key={index}
-                        className="w-full text-left text-sm px-3 py-2.5 rounded-xl border border-border hover:border-violet-500/50 hover:bg-violet-500/5 transition-all"
+                        className="w-full text-left text-sm px-3 py-2 rounded-lg border border-border hover:border-accent/50 hover:bg-accent/5 transition-colors"
                       >
                         {question}
                       </button>
@@ -185,13 +173,13 @@ export default function InsightsPage() {
                 {/* Sample Response */}
                 <div className="mt-6 pt-6 border-t border-border">
                   <div className="flex items-start gap-3">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-violet-500/10 flex-shrink-0">
-                      <Sparkles className="h-4 w-4 text-violet-500" />
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent/10">
+                      <Sparkles className="h-4 w-4 text-accent" />
                     </div>
                     <div className="flex-1">
                       <p className="text-sm text-muted-foreground">
-                        Based on your data, sleep duration increased from an average of 6.8 hours
-                        to 7.9 hours after starting Retatrutide, with the most significant improvement
+                        Based on your data, sleep duration increased from an average of 6.8 hours 
+                        to 7.9 hours after starting Retatrutide, with the most significant improvement 
                         in deep sleep stages.
                       </p>
                     </div>

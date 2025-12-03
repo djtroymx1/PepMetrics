@@ -81,19 +81,17 @@ export default function SettingsPage() {
                 </div>
                 <div className="space-y-4">
                   <div>
-                    <label htmlFor="display-name" className="block text-sm font-medium mb-2">Display Name</label>
-                    <input
-                      id="display-name"
-                      type="text"
+                    <label className="block text-sm font-medium mb-2">Display Name</label>
+                    <input 
+                      type="text" 
                       defaultValue="Troy"
                       className="w-full rounded-lg border border-border bg-muted px-3 py-2.5 text-sm focus:border-primary focus:ring-1 focus:ring-primary"
                     />
                   </div>
                   <div>
-                    <label htmlFor="email" className="block text-sm font-medium mb-2">Email</label>
-                    <input
-                      id="email"
-                      type="email"
+                    <label className="block text-sm font-medium mb-2">Email</label>
+                    <input 
+                      type="email" 
                       defaultValue="troy@example.com"
                       className="w-full rounded-lg border border-border bg-muted px-3 py-2.5 text-sm focus:border-primary focus:ring-1 focus:ring-primary"
                     />

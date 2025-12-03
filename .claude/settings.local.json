@@ -13,7 +13,10 @@
       "Bash(npx playwright install:*)",
       "Bash(npm run test:e2e:*)",
       "Bash(npx playwright:*)",
-      "Bash(timeout:*)"
+      "Bash(timeout:*)",
+      "Bash(git push:*)",
+      "Bash(git branch:*)",
+      "Bash(git revert:*)"
     ],
     "deny": [],
     "ask": []
