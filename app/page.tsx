@@ -27,7 +27,7 @@ export default function DashboardPage() {
         <div className="p-6 lg:p-8 max-w-7xl mx-auto">
           {/* Header */}
           <div className="mb-8">
-            <h1 className="text-4xl font-semibold text-balance mb-2">Today's Target</h1>
+            <h1 className="text-4xl font-semibold text-balance mb-2">Good morning, Troy</h1>
             <p className="text-muted-foreground text-lg">Track your health metrics and peptide protocols</p>
           </div>
 

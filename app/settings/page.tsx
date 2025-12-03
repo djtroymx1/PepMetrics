@@ -81,24 +81,31 @@ export default function SettingsPage() {
                 </div>
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium mb-2">Display Name</label>
+                    <label htmlFor="display-name" className="block text-sm font-medium mb-2">Display Name</label>
                     <input 
+                      id="display-name"
+                      name="display-name"
                       type="text" 
                       defaultValue="Troy"
                       className="w-full rounded-lg border border-border bg-muted px-3 py-2.5 text-sm focus:border-primary focus:ring-1 focus:ring-primary"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2">Email</label>
+                    <label htmlFor="email" className="block text-sm font-medium mb-2">Email</label>
                     <input 
+                      id="email"
+                      name="email"
                       type="email" 
                       defaultValue="troy@example.com"
                       className="w-full rounded-lg border border-border bg-muted px-3 py-2.5 text-sm focus:border-primary focus:ring-1 focus:ring-primary"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2">Units</label>
-                    <select className="w-full rounded-lg border border-border bg-muted px-3 py-2.5 text-sm focus:border-primary focus:ring-1 focus:ring-primary">
+                    <label htmlFor="units" className="block text-sm font-medium mb-2">Units</label>
+                    <select 
+                      id="units"
+                      name="units"
+                      className="w-full rounded-lg border border-border bg-muted px-3 py-2.5 text-sm focus:border-primary focus:ring-1 focus:ring-primary">
                       <option>Imperial (lbs, oz)</option>
                       <option>Metric (kg, ml)</option>
                     </select>
