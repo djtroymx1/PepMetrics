@@ -30,9 +30,15 @@ function toISODateString(date: Date): string {
   return `${y}-${m}-${day}`
 }
 
+// Parse a YYYY-MM-DD string into a local Date (avoids UTC parsing)
+function fromDateKey(key: string): Date {
+  const [y, m, d] = key.split('-').map(Number)
+  return new Date(y || 0, (m || 1) - 1, d || 1)
+}
+
 // Shared scheduler to decide if a protocol should dose on a specific date
 function shouldDoseOnDate(protocol: Protocol, checkDate: Date): boolean {
-  const startDate = startOfDay(new Date(protocol.startDate))
+  const startDate = startOfDay(fromDateKey(protocol.startDate))
   if (checkDate < startDate) return false
 
   switch (protocol.frequencyType) {
@@ -45,7 +51,7 @@ function shouldDoseOnDate(protocol: Protocol, checkDate: Date): boolean {
       return daysSinceStart >= 0 && daysSinceStart % (protocol.intervalDays || 1) === 0
     }
     case 'cycling': {
-      const cycleStartDate = startOfDay(new Date(protocol.cycleStartDate || protocol.startDate))
+      const cycleStartDate = startOfDay(fromDateKey(protocol.cycleStartDate || protocol.startDate))
       const onDays = protocol.cycleOnDays || 5
       const offDays = protocol.cycleOffDays || 2
       const cycleLength = onDays + offDays

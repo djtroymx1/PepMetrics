@@ -47,6 +47,16 @@ export function AddProtocolModal({ isOpen, onClose, onProtocolAdded, editProtoco
   const [dosesPerDay, setDosesPerDay] = useState("1")
   const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0])
 
+  const normalizeDateKey = (value: string) => {
+    // Ensure we store dates as local YYYY-MM-DD to avoid UTC shifting
+    const [y, m, d] = value.split('-').map(Number)
+    const date = new Date(y || 0, (m || 1) - 1, d || 1)
+    const yy = date.getFullYear()
+    const mm = String(date.getMonth() + 1).padStart(2, '0')
+    const dd = String(date.getDate()).padStart(2, '0')
+    return `${yy}-${mm}-${dd}`
+  }
+
   // Populate form when editing
   useEffect(() => {
     if (editProtocol && isOpen) {
@@ -156,6 +166,8 @@ export function AddProtocolModal({ isOpen, onClose, onProtocolAdded, editProtoco
         }
       }
 
+      const normalizedStart = normalizeDateKey(startDate)
+
       const protocolData = {
         odId: isEditMode ? editProtocol.odId : crypto.randomUUID(),
         peptideId: peptideId || 'custom',
@@ -169,12 +181,12 @@ export function AddProtocolModal({ isOpen, onClose, onProtocolAdded, editProtoco
         intervalDays: frequencyType === 'every-x-days' ? parseInt(intervalDays) : undefined,
         cycleOnDays: frequencyType === 'cycling' ? parseInt(cycleOnDays) : undefined,
         cycleOffDays: frequencyType === 'cycling' ? parseInt(cycleOffDays) : undefined,
-        cycleStartDate: frequencyType === 'cycling' ? startDate : undefined,
+        cycleStartDate: frequencyType === 'cycling' ? normalizedStart : undefined,
         timingPreference,
         preferredTime: preferredTime || undefined,
         dosesPerDay: parseInt(dosesPerDay),
         status: isEditMode ? editProtocol.status : 'active' as const,
-        startDate,
+        startDate: normalizedStart,
       }
 
       if (isEditMode) {
