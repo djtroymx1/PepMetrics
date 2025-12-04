@@ -293,7 +293,7 @@ export function GarminImport({ onImportComplete }: GarminImportProps) {
               <div>
                 <h4 className="font-medium mb-2">Full Export (JSON) — adds Sleep, HRV, Stress, Body Battery:</h4>
                 <p className="text-muted-foreground mb-2">
-                  Use this if you want complete health metrics for AI insights (sleep stages/score, HRV, stress, Body Battery).
+                  Use this for complete health metrics and best AI insights.
                 </p>
                 <ol className="list-decimal list-inside space-y-1.5 text-muted-foreground">
                   <li>
@@ -309,7 +309,14 @@ export function GarminImport({ onImportComplete }: GarminImportProps) {
                     {' '}and request your data export.
                   </li>
                   <li>Garmin emails you a ZIP link; download and unzip it.</li>
-                  <li>Upload the extracted JSON files here (sleep, HRV, stress, body battery, daily summaries).</li>
+                  <li>
+                    Upload these JSON files (pick the newest ones):
+                    <ul className="list-disc list-inside ml-4 space-y-1 text-xs text-muted-foreground mt-1">
+                      <li><strong>UDSFile_*.json</strong> (in DI-Connect-Aggregator) → daily steps, calories, stress, body battery.</li>
+                      <li><strong>*sleepData.json</strong> (in DI-Connect-Wellness) → sleep duration/quality.</li>
+                    </ul>
+                  </li>
+                  <li className="text-xs text-muted-foreground">Need help? Ask the in-app AI chat which files to upload.</li>
                 </ol>
               </div>
 
