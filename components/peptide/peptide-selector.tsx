@@ -312,7 +312,7 @@ export function PeptideSelector({
             {/* No results */}
             {filteredPeptides.length === 0 && filteredStacks.length === 0 && searchQuery && (
               <div className="px-3 py-4 text-sm text-center text-muted-foreground">
-                No peptides found for "{searchQuery}"
+                No peptides found for &quot;{searchQuery}&quot;
               </div>
             )}
           </div>

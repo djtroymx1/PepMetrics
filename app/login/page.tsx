@@ -107,7 +107,7 @@ export default function LoginPage() {
         <div className="mt-6 text-center text-sm text-muted-foreground">
           {mode === 'signin' ? (
             <>
-              Don't have an account?{' '}
+              Don&apos;t have an account?{' '}
               <button className="text-primary hover:underline" onClick={() => setMode('signup')}>
                 Sign up
               </button>

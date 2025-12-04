@@ -97,7 +97,7 @@ export function GarminConnect({
 
       {/* Features Grid */}
       <div className="p-6">
-        <p className="text-sm text-muted-foreground mb-4">What you'll get:</p>
+        <p className="text-sm text-muted-foreground mb-4">What you&apos;ll get:</p>
         <div className="grid gap-3 sm:grid-cols-2 mb-6">
           {features.map((feature) => {
             const Icon = feature.icon

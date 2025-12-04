@@ -56,7 +56,7 @@ export function ScheduleCard() {
     <div className="rounded-2xl bg-card p-6 border border-border h-full">
       <div className="flex items-center justify-between mb-5">
         <div>
-          <p className="text-sm text-muted-foreground mb-1">Today's Schedule</p>
+          <p className="text-sm text-muted-foreground mb-1">Today&apos;s Schedule</p>
           <h3 className="text-xl font-semibold">{completedCount}/{scheduleData.length} Completed</h3>
         </div>
         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted">

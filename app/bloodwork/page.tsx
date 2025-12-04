@@ -85,7 +85,7 @@ export default function BloodworkPage() {
       <AppSidebar />
       <MobileNav />
 
-      <main className="lg:pl-64 pb-20 lg:pb-0">
+      <main className="lg:pl-64 pb-32 lg:pb-0">
         <div className="p-6 lg:p-8 max-w-6xl mx-auto">
           {/* Header */}
           <div className="flex items-center justify-between mb-8">

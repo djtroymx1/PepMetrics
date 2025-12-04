@@ -21,7 +21,7 @@ export function HeartRateChart() {
             <Heart className="h-5 w-5 text-[#f43f5e]" />
             <h2 className="text-lg font-semibold">Average Heart Rate</h2>
           </div>
-          <p className="text-sm text-text-secondary">Today's heart rate trend</p>
+          <p className="text-sm text-text-secondary">Today&apos;s heart rate trend</p>
         </div>
         <div className="text-right">
           <p className="text-2xl font-semibold tabular-nums">75 bpm</p>

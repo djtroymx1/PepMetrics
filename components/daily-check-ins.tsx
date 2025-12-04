@@ -31,7 +31,7 @@ export function DailyCheckIns() {
           <p className="text-sm text-text-secondary">Track how you feel each day (1-10 scale)</p>
         </div>
         <button className="px-4 py-2 rounded-lg bg-primary text-background text-sm font-medium hover:bg-primary/90 transition-colors">
-          Today's Check-In
+          Today&apos;s Check-In
         </button>
       </div>
 
