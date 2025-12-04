@@ -15,6 +15,7 @@ export default function InsightsPage() {
   const [state, setState] = useState<InsightsState>('loading')
   const [insights, setInsights] = useState<WeeklyInsights | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [missingDetails, setMissingDetails] = useState<string | null>(null)
 
   // Fetch existing insights on mount
   useEffect(() => {
@@ -24,6 +25,7 @@ export default function InsightsPage() {
   const fetchInsights = async () => {
     setState('loading')
     setError(null)
+    setMissingDetails(null)
 
     try {
       const response = await fetch('/api/insights')
@@ -66,7 +68,24 @@ export default function InsightsPage() {
         if (data.missingData) {
           // Insufficient data
           setState('no-data')
+
+          const statsLine = data.stats
+            ? `Garmin days: ${data.stats.daysOfGarminData}, dose logs: ${data.stats.daysOfDoseLogs}, active protocols: ${data.stats.activeProtocols}, completeness: ${data.stats.completenessScore}%`
+            : null
+
+          const windowLine = data.analysisWindow
+            ? `Analyzed window: ${data.analysisWindow.start} → ${data.analysisWindow.end}`
+            : null
+
+          const details = [
+            data.message,
+            ...(data.missingData || []),
+            statsLine,
+            windowLine,
+          ].filter(Boolean).join('\n')
+
           setError(data.message)
+          setMissingDetails(details)
           return
         }
         throw new Error(data.error || 'Failed to generate insights')
@@ -159,7 +178,14 @@ export default function InsightsPage() {
 
               {/* No Data State */}
               {state === 'no-data' && (
-                <InsightsEmptyState variant="insufficient-data" />
+                <>
+                  {missingDetails && (
+                    <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 text-sm text-amber-700 dark:text-amber-300 whitespace-pre-line">
+                      {missingDetails}
+                    </div>
+                  )}
+                  <InsightsEmptyState variant="insufficient-data" />
+                </>
               )}
 
               {/* Error State */}

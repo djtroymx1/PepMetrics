@@ -23,9 +23,21 @@ export async function POST() {
       )
     }
 
-    // Use a rolling 7-day window ending today (spec calls for "last 7 days")
+    // Use a rolling 7-day window ending at the most recent Garmin data date (or today)
     const now = new Date()
-    const analysisEnd = new Date(now)
+
+    // Find the latest Garmin data date for this user to avoid "no data" when data is older than today
+    const { data: latestGarmin } = await supabase
+      .from('garmin_data')
+      .select('data_date')
+      .eq('user_id', user.id)
+      .order('data_date', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    const analysisEnd = latestGarmin?.data_date
+      ? new Date(latestGarmin.data_date)
+      : new Date(now)
     analysisEnd.setHours(0, 0, 0, 0)
 
     const analysisStart = new Date(analysisEnd)
@@ -69,6 +81,10 @@ export async function POST() {
         message: messages.description,
         missingData: messages.actionItems,
         stats: validation.stats,
+        analysisWindow: {
+          start: weekStartStr,
+          end: weekEndStr,
+        },
       }, { status: 400 })
     }
 
