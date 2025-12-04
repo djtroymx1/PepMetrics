@@ -26,6 +26,33 @@ function toISODateString(date: Date): string {
   return date.toISOString().split('T')[0]
 }
 
+// Shared scheduler to decide if a protocol should dose on a specific date
+function shouldDoseOnDate(protocol: Protocol, checkDate: Date): boolean {
+  const startDate = startOfDay(new Date(protocol.startDate))
+  if (checkDate < startDate) return false
+
+  switch (protocol.frequencyType) {
+    case 'daily':
+      return true
+    case 'specific-days':
+      return protocol.specificDays?.includes(getDayOfWeek(checkDate)) || false
+    case 'every-x-days': {
+      const daysSinceStart = Math.floor((checkDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))
+      return daysSinceStart >= 0 && daysSinceStart % (protocol.intervalDays || 1) === 0
+    }
+    case 'cycling': {
+      const cycleStartDate = startOfDay(new Date(protocol.cycleStartDate || protocol.startDate))
+      const onDays = protocol.cycleOnDays || 5
+      const offDays = protocol.cycleOffDays || 2
+      const cycleLength = onDays + offDays
+      const daysSinceCycle = Math.floor((checkDate.getTime() - cycleStartDate.getTime()) / (1000 * 60 * 60 * 24))
+      return daysSinceCycle >= 0 && (daysSinceCycle % cycleLength) < onDays
+    }
+    default:
+      return false
+  }
+}
+
 // Calculate the next dose date based on protocol settings
 export function getNextDoseDate(protocol: Protocol, lastDoseDate?: Date): Date {
   const today = startOfDay(new Date())
@@ -192,30 +219,7 @@ export function getUpcomingDoses(protocols: Protocol[], doseHistory: DoseLog[], 
       const startDate = startOfDay(new Date(protocol.startDate))
       if (checkDate < startDate) continue
 
-      let shouldDose = false
-
-      switch (protocol.frequencyType) {
-        case 'daily':
-          shouldDose = true
-          break
-        case 'specific-days':
-          shouldDose = protocol.specificDays?.includes(getDayOfWeek(checkDate)) || false
-          break
-        case 'every-x-days':
-          const daysSinceStart = Math.floor((checkDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))
-          shouldDose = daysSinceStart >= 0 && daysSinceStart % (protocol.intervalDays || 1) === 0
-          break
-        case 'cycling':
-          const cycleStartDate = startOfDay(new Date(protocol.cycleStartDate || protocol.startDate))
-          const onDays = protocol.cycleOnDays || 5
-          const offDays = protocol.cycleOffDays || 2
-          const cycleLength = onDays + offDays
-          const daysSinceCycle = Math.floor((checkDate.getTime() - cycleStartDate.getTime()) / (1000 * 60 * 60 * 24))
-          shouldDose = daysSinceCycle >= 0 && (daysSinceCycle % cycleLength) < onDays
-          break
-      }
-
-      if (shouldDose) {
+      if (shouldDoseOnDate(protocol, checkDate)) {
         // Check both peptides and stacks
         const peptide = getPeptideById(protocol.peptideId)
         const stack = !peptide ? getStackById(protocol.peptideId) : null
@@ -275,6 +279,82 @@ export function getUpcomingDoses(protocols: Protocol[], doseHistory: DoseLog[], 
 // Get doses due today
 export function getDosesToday(protocols: Protocol[], doseHistory: DoseLog[]): ScheduledDose[] {
   return getUpcomingDoses(protocols, doseHistory, 1)
+}
+
+// Get scheduled doses for an arbitrary date range (inclusive)
+export function getDosesForRange(
+  protocols: Protocol[],
+  doseHistory: DoseLog[],
+  startDate: Date,
+  endDate: Date
+): ScheduledDose[] {
+  const start = startOfDay(startDate)
+  const end = startOfDay(endDate)
+  const today = startOfDay(new Date())
+
+  const scheduled: ScheduledDose[] = []
+  for (
+    let cursor = new Date(start);
+    cursor.getTime() <= end.getTime();
+    cursor = addDays(cursor, 1)
+  ) {
+    const checkDateStr = toISODateString(cursor)
+
+    for (const protocol of protocols) {
+      if (protocol.status !== 'active') continue
+      if (!shouldDoseOnDate(protocol, cursor)) continue
+
+      const peptide = getPeptideById(protocol.peptideId)
+      const stack = !peptide ? getStackById(protocol.peptideId) : null
+
+      const peptideName = protocol.customPeptideName || peptide?.name || stack?.name || 'Unknown Peptide'
+      const requiresFasting = peptide?.fastingRequired || stack?.fastingRequired || false
+      const fastingNotes = peptide?.fastingNotes
+      const fdaApproved = peptide?.fdaApproved || false
+
+      for (let doseNum = 1; doseNum <= protocol.dosesPerDay; doseNum++) {
+        const existingLog = doseHistory.find(log =>
+          log.protocolId === protocol.id &&
+          log.scheduledFor.startsWith(checkDateStr) &&
+          log.doseNumber === doseNum
+        )
+
+        let status: ScheduledDose['status'] = 'pending'
+        if (existingLog) {
+          status = existingLog.status
+        } else if (cursor < today) {
+          status = 'overdue'
+        }
+
+        scheduled.push({
+          protocolId: protocol.id,
+          peptideId: protocol.peptideId,
+          peptideName,
+          dose: protocol.dose,
+          vialSize: protocol.vialSize,
+          scheduledDate: checkDateStr,
+          scheduledTime: protocol.preferredTime,
+          timing: protocol.timingPreference,
+          timingPreference: protocol.timingPreference,
+          doseNumber: doseNum,
+          dosesPerDay: protocol.dosesPerDay,
+          totalDoses: protocol.dosesPerDay,
+          requiresFasting,
+          fastingNotes,
+          fdaApproved,
+          status,
+          doseLogId: existingLog?.id,
+        })
+      }
+    }
+  }
+
+  return scheduled.sort((a, b) => {
+    if (a.scheduledDate !== b.scheduledDate) {
+      return a.scheduledDate.localeCompare(b.scheduledDate)
+    }
+    return a.doseNumber - b.doseNumber
+  })
 }
 
 // Get overdue doses

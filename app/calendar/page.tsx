@@ -8,7 +8,7 @@ import { CalendarLegend } from "@/components/calendar-legend"
 import { DoseCard, NoDoses } from "@/components/dose-card"
 import { cn } from "@/lib/utils"
 import { getProtocols, getDoseLogs, markDoseAsTaken, markDoseAsSkipped, clearDoseLog } from "@/lib/storage"
-import { getUpcomingDoses } from "@/lib/scheduling"
+import { getDosesForRange } from "@/lib/scheduling"
 import type { Protocol, DoseLog, ScheduledDose } from "@/lib/types"
 
 interface CalendarDay {
@@ -48,12 +48,13 @@ export default function CalendarPage() {
     const startingDayOfWeek = firstDay.getDay()
     const daysInMonth = lastDay.getDate()
 
-    // Get all doses for this month (plus some buffer)
-    const monthEnd = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0)
+    // Determine the full grid window (6 rows * 7 days = 42 days)
+    const gridStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1 - startingDayOfWeek)
+    const gridEnd = new Date(gridStart)
+    gridEnd.setDate(gridStart.getDate() + 41)
 
-    // Calculate days from today to end of month for upcoming doses
-    const daysToEndOfMonth = Math.ceil((monthEnd.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)) + 1
-    const allDoses = getUpcomingDoses(protocols, doseLogs, Math.max(daysToEndOfMonth + 7, 45))
+    // Pull doses for the entire visible grid (includes previous/next month spillover)
+    const allDoses = getDosesForRange(protocols, doseLogs, gridStart, gridEnd)
 
     const days: CalendarDay[] = []
 
