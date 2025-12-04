@@ -102,6 +102,10 @@ interface GarminDailySummaryEntry {
   maxHeartRate?: number
   averageStressLevel?: number
   maxStressLevel?: number
+
+  // UDSFile/aggregator fields
+  totalKilocalories?: number
+  activeSeconds?: number
 }
 
 /**
@@ -125,7 +129,7 @@ export function parseGarminExportFile(
   // Detect file type based on filename and content structure
   const lowerName = fileName.toLowerCase()
 
-  if (lowerName.includes('sleep') || hasProperty(parsed, 'sleepTimeSeconds')) {
+  if (lowerName.includes('sleep') || hasProperty(parsed, 'sleepTimeSeconds') || lowerName.includes('sleepdata')) {
     return { fileName, type: 'sleep', content: parsed }
   }
 
@@ -137,11 +141,23 @@ export function parseGarminExportFile(
     return { fileName, type: 'stress', content: parsed }
   }
 
-  if (lowerName.includes('body_battery') || lowerName.includes('bodybattery') || hasProperty(parsed, 'startOfDayBodyBattery')) {
+  if (
+    lowerName.includes('body_battery') ||
+    lowerName.includes('bodybattery') ||
+    hasProperty(parsed, 'startOfDayBodyBattery') ||
+    hasProperty(parsed, 'bodyBatteryStatList')
+  ) {
     return { fileName, type: 'body_battery', content: parsed }
   }
 
-  if (lowerName.includes('daily') || lowerName.includes('summary') || hasProperty(parsed, 'totalSteps')) {
+  // Garmin wellness/aggregator daily summary often named UDSFile_*.json
+  if (
+    lowerName.includes('udsfile') ||
+    lowerName.includes('aggregator') ||
+    lowerName.includes('daily') ||
+    lowerName.includes('summary') ||
+    hasProperty(parsed, 'totalSteps')
+  ) {
     return { fileName, type: 'daily_summary', content: parsed }
   }
 
@@ -259,15 +275,57 @@ function mergeEntryData(
 
     case 'daily_summary': {
       const summary = entry as GarminDailySummaryEntry
-      merged.steps = summary.totalSteps ?? undefined
-      merged.distance_meters = summary.totalDistanceMeters ?? undefined
-      merged.calories_active = summary.activeKilocalories ?? undefined
-      merged.calories_total = (summary.activeKilocalories ?? 0) + (summary.bmrKilocalories ?? 0) || undefined
-      merged.active_minutes = (summary.intensityMinutes ?? 0) + (summary.vigorousIntensityMinutes ?? 0) || undefined
-      merged.resting_hr = summary.restingHeartRate ?? undefined
-      if (summary.averageStressLevel && !merged.stress_avg) {
+
+      // Standard daily summary fields
+      if (summary.totalSteps !== undefined) merged.steps = summary.totalSteps
+      if (summary.totalDistanceMeters !== undefined) merged.distance_meters = summary.totalDistanceMeters
+      if (summary.activeKilocalories !== undefined) merged.calories_active = summary.activeKilocalories
+      if (summary.activeKilocalories !== undefined || summary.bmrKilocalories !== undefined) {
+        merged.calories_total = (summary.activeKilocalories ?? 0) + (summary.bmrKilocalories ?? 0)
+      }
+      if (summary.intensityMinutes !== undefined || summary.vigorousIntensityMinutes !== undefined) {
+        merged.active_minutes = (summary.intensityMinutes ?? 0) + (summary.vigorousIntensityMinutes ?? 0)
+      }
+      if (summary.restingHeartRate !== undefined) merged.resting_hr = summary.restingHeartRate
+      if (summary.averageStressLevel !== undefined && merged.stress_avg === undefined) {
         merged.stress_avg = summary.averageStressLevel
       }
+
+      // Fields present in UDSFile/aggregator summaries
+      const totalKilocalories = (entry as any).totalKilocalories
+      if (totalKilocalories !== undefined) merged.calories_total = totalKilocalories
+
+      const activeKilocalories = (entry as any).activeKilocalories
+      if (activeKilocalories !== undefined) merged.calories_active = activeKilocalories
+
+      const totalSteps = (entry as any).totalSteps
+      if (totalSteps !== undefined) merged.steps = totalSteps
+
+      const totalDistanceMeters = (entry as any).totalDistanceMeters
+      if (totalDistanceMeters !== undefined) merged.distance_meters = totalDistanceMeters
+
+      const activeSeconds = (entry as any).activeSeconds
+      if (activeSeconds !== undefined) merged.active_minutes = Math.round(activeSeconds / 60)
+
+      // Stress average from allDayStress
+      const allDayStress = (entry as any).allDayStress
+      if (allDayStress?.aggregatorList?.length) {
+        const total = allDayStress.aggregatorList.find((a: any) => a.type === 'TOTAL') || allDayStress.aggregatorList[0]
+        if (total?.averageStressLevel !== undefined) merged.stress_avg = total.averageStressLevel
+      }
+
+      // Body battery high/low from bodyBatteryStatList
+      const bodyBattery = (entry as any).bodyBattery
+      if (bodyBattery?.bodyBatteryStatList?.length) {
+        const highest = bodyBattery.bodyBatteryStatList.find((s: any) => s.bodyBatteryStatType === 'HIGHEST')
+        const lowest = bodyBattery.bodyBatteryStatList.find((s: any) => s.bodyBatteryStatType === 'LOWEST')
+        if (highest?.statsValue !== undefined) merged.body_battery_high = highest.statsValue
+        if (lowest?.statsValue !== undefined) merged.body_battery_low = lowest.statsValue
+      }
+
+      // Resting HR alternative keys
+      const restingHeartRate = (entry as any).restingHeartRate
+      if (restingHeartRate !== undefined) merged.resting_hr = restingHeartRate
       break
     }
   }

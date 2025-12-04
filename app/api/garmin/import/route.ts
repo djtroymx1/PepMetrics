@@ -370,31 +370,37 @@ async function upsertGarminDailyData(
 ) {
   if (dailySummaries.length === 0) return
 
-  const rows = dailySummaries.map((day) => ({
-    user_id: userId,
-    data_date: day.date,
-    sleep: day.sleep_score
-      ? {
-          score: day.sleep_score,
-          duration_hours: day.sleep_duration_hours,
-          deep_hours: day.deep_sleep_hours,
-          light_hours: day.light_sleep_hours,
-          rem_hours: day.rem_sleep_hours,
-          awake_hours: day.awake_hours,
-        }
-      : {},
-    hrv_avg: day.hrv_avg ?? null,
-    resting_heart_rate: day.resting_hr ?? null,
-    stress_avg: day.stress_avg ?? null,
-    body_battery_high: day.body_battery_high ?? null,
-    body_battery_low: day.body_battery_low ?? null,
-    steps: day.steps ?? null,
-    active_minutes: day.active_minutes ?? null,
-    calories_total: day.calories_total ?? null,
-    calories_active: day.calories_active ?? null,
-    distance_meters: day.distance_meters ?? null,
-    synced_at: new Date().toISOString(),
-  }))
+  const rows = dailySummaries.map((day) => {
+    const row: Record<string, unknown> = {
+      user_id: userId,
+      data_date: day.date,
+      synced_at: new Date().toISOString(),
+    }
+
+    if (day.sleep_score !== undefined) {
+      row.sleep = {
+        score: day.sleep_score,
+        duration_hours: day.sleep_duration_hours,
+        deep_hours: day.deep_sleep_hours,
+        light_hours: day.light_sleep_hours,
+        rem_hours: day.rem_sleep_hours,
+        awake_hours: day.awake_hours,
+      }
+    }
+
+    if (day.hrv_avg !== undefined) row.hrv_avg = day.hrv_avg
+    if (day.resting_hr !== undefined) row.resting_heart_rate = day.resting_hr
+    if (day.stress_avg !== undefined) row.stress_avg = day.stress_avg
+    if (day.body_battery_high !== undefined) row.body_battery_high = day.body_battery_high
+    if (day.body_battery_low !== undefined) row.body_battery_low = day.body_battery_low
+    if (day.steps !== undefined) row.steps = day.steps
+    if (day.active_minutes !== undefined) row.active_minutes = day.active_minutes
+    if (day.calories_total !== undefined) row.calories_total = day.calories_total
+    if (day.calories_active !== undefined) row.calories_active = day.calories_active
+    if (day.distance_meters !== undefined) row.distance_meters = day.distance_meters
+
+    return row
+  })
 
   const { error } = await supabase
     .from('garmin_data')
