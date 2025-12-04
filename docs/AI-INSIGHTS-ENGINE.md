@@ -4,6 +4,17 @@
 
 The AI Insights Engine transforms peptide dosing logs and Garmin health data into actionable, personalized insights using Anthropic's Claude API. This document covers the complete implementation from Week 1 through Week 8.
 
+### Current Usage Notes (Dec 2025)
+- Auth: use `/login` (email + password) to establish a Supabase session before importing or generating insights.
+- Env: `ANTHROPIC_API_KEY` must be set on the server (Vercel) for insights/chat to work.
+- Imports:
+  - Activity CSV (from connect.garmin.com/activities) populates `garmin_activities` (distance, calories, active minutes).
+  - Full export JSON adds health metrics to `garmin_data`:
+    - Use the newest `UDSFile_*.json` in `DI_CONNECT/DI-Connect-Aggregator/` (daily steps, calories, stress, body battery, resting HR).
+    - Use the newest `*sleepData.json` in `DI_CONNECT/DI-Connect-Wellness/` (sleep duration/quality).
+  - The importer now avoids overwriting existing daily fields with nulls; each upload only updates metrics present in the file.
+- UI guidance: the `/health` import card explains which JSON files to pick and points users to in-app AI chat for help choosing files.
+
 **Key Features:**
 - Garmin CSV Import (Activity data)
 - Weekly AI Analysis with 6 insight types
