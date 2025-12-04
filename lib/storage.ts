@@ -227,6 +227,27 @@ export function markDoseAsSkipped(
   return newLog
 }
 
+// Remove a logged dose entry (revert to pending/overdue in UI)
+export function clearDoseLog(
+  protocolId: string,
+  scheduledFor: string,
+  doseNumber: number
+): boolean {
+  const logs = getDoseLogs()
+  const filtered = logs.filter(
+    log =>
+      !(
+        log.protocolId === protocolId &&
+        log.scheduledFor === scheduledFor &&
+        log.doseNumber === doseNumber
+      )
+  )
+
+  if (filtered.length === logs.length) return false
+  saveDoseLogs(filtered)
+  return true
+}
+
 // Fasting timer storage
 export function saveFastingStart(timestamp: Date): void {
   if (!isBrowser()) return

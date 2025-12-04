@@ -1,6 +1,6 @@
 "use client"
 
-import { Check, X, AlertCircle, Clock } from "lucide-react"
+import { Check, X, AlertCircle, Clock, RotateCcw } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { TimingBadge } from "@/components/timing-badge"
 import type { ScheduledDose } from "@/lib/types"
@@ -9,6 +9,7 @@ interface DoseCardProps {
   dose: ScheduledDose
   onMarkTaken?: () => void
   onMarkSkipped?: () => void
+  onReset?: () => void
   showDate?: boolean
   compact?: boolean
   className?: string
@@ -18,6 +19,7 @@ export function DoseCard({
   dose,
   onMarkTaken,
   onMarkSkipped,
+  onReset,
   showDate = false,
   compact = false,
   className,
@@ -107,7 +109,7 @@ export function DoseCard({
         </div>
 
         {/* Action Buttons */}
-        {isActionable && (onMarkTaken || onMarkSkipped) && (
+        {(isActionable && (onMarkTaken || onMarkSkipped)) || (onReset && (dose.status === 'taken' || dose.status === 'skipped')) ? (
           <div className="flex flex-col gap-2">
             {onMarkTaken && (
               <button
@@ -135,8 +137,21 @@ export function DoseCard({
                 <X className={compact ? "h-4 w-4" : "h-5 w-5"} />
               </button>
             )}
+            {onReset && (dose.status === 'taken' || dose.status === 'skipped') && (
+              <button
+                onClick={onReset}
+                className={cn(
+                  "flex items-center justify-center rounded-lg border border-border transition-colors",
+                  compact ? "h-8 w-8" : "h-10 w-10",
+                  "hover:bg-muted"
+                )}
+                title="Undo / clear this log"
+              >
+                <RotateCcw className={compact ? "h-4 w-4" : "h-5 w-5"} />
+              </button>
+            )}
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   )

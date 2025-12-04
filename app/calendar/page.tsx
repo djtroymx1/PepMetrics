@@ -7,7 +7,7 @@ import { MobileNav } from "@/components/mobile-nav"
 import { CalendarLegend } from "@/components/calendar-legend"
 import { DoseCard, NoDoses } from "@/components/dose-card"
 import { cn } from "@/lib/utils"
-import { getProtocols, getDoseLogs, markDoseAsTaken, markDoseAsSkipped } from "@/lib/storage"
+import { getProtocols, getDoseLogs, markDoseAsTaken, markDoseAsSkipped, clearDoseLog } from "@/lib/storage"
 import { getUpcomingDoses } from "@/lib/scheduling"
 import type { Protocol, DoseLog, ScheduledDose } from "@/lib/types"
 
@@ -131,6 +131,11 @@ export default function CalendarPage() {
       dose.peptideName,
       dose.dose
     )
+    loadData()
+  }
+
+  const handleResetDose = (dose: ScheduledDose) => {
+    clearDoseLog(dose.protocolId, dose.scheduledDate, dose.doseNumber)
     loadData()
   }
 
@@ -276,22 +281,27 @@ export default function CalendarPage() {
               ) : (
                 <div className="space-y-3">
                   {selectedDayDoses.map((dose, idx) => (
-                    <DoseCard
-                      key={`${dose.protocolId}-${dose.doseNumber}-${idx}`}
-                      dose={dose}
-                      onMarkTaken={
-                        dose.status === 'pending' || dose.status === 'overdue'
+                  <DoseCard
+                    key={`${dose.protocolId}-${dose.doseNumber}-${idx}`}
+                    dose={dose}
+                    onMarkTaken={
+                      dose.status === 'pending' || dose.status === 'overdue'
                           ? () => handleMarkTaken(dose)
                           : undefined
                       }
-                      onMarkSkipped={
-                        dose.status === 'pending' || dose.status === 'overdue'
-                          ? () => handleMarkSkipped(dose)
-                          : undefined
-                      }
-                      compact
-                    />
-                  ))}
+                    onMarkSkipped={
+                      dose.status === 'pending' || dose.status === 'overdue'
+                        ? () => handleMarkSkipped(dose)
+                        : undefined
+                    }
+                    onReset={
+                      dose.status === 'taken' || dose.status === 'skipped'
+                        ? () => handleResetDose(dose)
+                        : undefined
+                    }
+                    compact
+                  />
+                ))}
                 </div>
               )}
 
