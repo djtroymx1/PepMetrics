@@ -12,6 +12,9 @@ import type { GarminImportResult, ParsedGarminActivity, GarminDailySummary } fro
 
 const MAX_FILE_SIZE = 200 * 1024 * 1024 // 200MB for ZIP files
 
+// For Vercel: Configure max duration for large file processing
+export const maxDuration = 60 // 60 seconds
+
 export async function POST(request: NextRequest) {
   try {
     // Authenticate user

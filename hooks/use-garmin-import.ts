@@ -1,7 +1,11 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import type { GarminImportResult } from '@/lib/types'
+import type { GarminImportResult, GarminDailySummary } from '@/lib/types'
+import {
+  parseGarminExportZip,
+  dailyDataToArray,
+} from '@/lib/parsers/garmin-json'
 
 interface ImportHistory {
   id: string
@@ -77,21 +81,80 @@ export function useGarminImport(): UseGarminImportReturn {
         throw new Error('Please upload a ZIP (recommended), CSV, or JSON file from Garmin')
       }
 
-      // Validate file size (200MB for ZIP, 5MB for others)
-      const maxSize = isZip ? 200 * 1024 * 1024 : 5 * 1024 * 1024
+      // Validate file size (500MB for ZIP since we process client-side, 5MB for others)
+      const maxSize = isZip ? 500 * 1024 * 1024 : 5 * 1024 * 1024
       if (file.size > maxSize) {
-        throw new Error(`File size exceeds ${isZip ? '200MB' : '5MB'} limit`)
+        throw new Error(`File size exceeds ${isZip ? '500MB' : '5MB'} limit`)
       }
 
+      // For ZIP files, process client-side and send only the parsed data
+      if (isZip) {
+        setUploadProgress(10)
+
+        // Parse the ZIP file in the browser
+        const zipResult = await parseGarminExportZip(file, 90)
+
+        setUploadProgress(50)
+
+        if (!zipResult.success || zipResult.dailyData.size === 0) {
+          throw new Error(
+            zipResult.errors.length > 0
+              ? zipResult.errors[0]
+              : 'No relevant Garmin data found in the ZIP file'
+          )
+        }
+
+        // Convert to array
+        const dailyArray = dailyDataToArray(zipResult.dailyData)
+
+        setUploadProgress(60)
+
+        // Send the processed data to the API (much smaller than the ZIP)
+        const response = await fetch('/api/garmin/import-data', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            fileName: file.name,
+            fileType: 'zip_export',
+            dailySummaries: dailyArray,
+            dateRange: zipResult.summary.dateRange,
+            dataTypes: zipResult.summary.dataTypes,
+            scanResult: {
+              totalFiles: zipResult.scanResult.totalFiles,
+              relevantFiles: zipResult.scanResult.relevantFiles,
+              skippedFiles: zipResult.scanResult.skippedFiles,
+              dataTypes: zipResult.scanResult.dataTypes,
+            },
+          }),
+        })
+
+        setUploadProgress(90)
+
+        const data = await response.json()
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Import failed')
+        }
+
+        setUploadProgress(100)
+        setLastImportResult(data)
+
+        // Refresh history after successful import
+        await fetchHistory()
+
+        return data
+      }
+
+      // For CSV/JSON, use the original upload approach (files are smaller)
       setUploadProgress(10)
 
-      // Create form data
       const formData = new FormData()
       formData.append('file', file)
 
       setUploadProgress(20)
 
-      // Upload file - ZIP files may take longer
       const response = await fetch('/api/garmin/import', {
         method: 'POST',
         body: formData,
