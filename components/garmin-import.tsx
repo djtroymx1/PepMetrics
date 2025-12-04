@@ -1,6 +1,7 @@
 'use client'
 
 import { useRef, useState, useCallback, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import {
   Upload,
   FileSpreadsheet,
@@ -22,6 +23,7 @@ interface GarminImportProps {
 }
 
 export function GarminImport({ onImportComplete }: GarminImportProps) {
+  const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [isDragging, setIsDragging] = useState(false)
   const [showInstructions, setShowInstructions] = useState(false)
@@ -61,16 +63,20 @@ export function GarminImport({ onImportComplete }: GarminImportProps) {
     if (file) {
       const result = await uploadFile(file)
       if (result?.success) {
+        // Refresh the page to reload server components with new data
+        router.refresh()
         onImportComplete?.()
       }
     }
-  }, [uploadFile, onImportComplete])
+  }, [uploadFile, onImportComplete, router])
 
   const handleFileSelect = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
       const result = await uploadFile(file)
       if (result?.success) {
+        // Refresh the page to reload server components with new data
+        router.refresh()
         onImportComplete?.()
       }
     }
@@ -78,7 +84,7 @@ export function GarminImport({ onImportComplete }: GarminImportProps) {
     if (fileInputRef.current) {
       fileInputRef.current.value = ''
     }
-  }, [uploadFile, onImportComplete])
+  }, [uploadFile, onImportComplete, router])
 
   const handleClick = useCallback(() => {
     fileInputRef.current?.click()
