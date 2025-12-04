@@ -40,3 +40,6 @@ Thumbs.db
 
 # Windows device placeholder that can accidentally appear
 nul
+
+# Garmin data exports (personal health data - do not commit)
+Garmin/

@@ -1,9 +1,9 @@
 # PepMetrics - Product Requirements Document
 
-**Version:** 1.0  
-**Date:** December 2, 2024  
-**Author:** Digital Visionworks LLC  
-**Status:** Research Complete - Ready for Development
+**Version:** 2.0
+**Date:** December 4, 2024
+**Author:** Digital Visionworks LLC
+**Status:** Phase 1-3 Complete - Active Development
 
 ---
 
@@ -119,12 +119,15 @@ PepMetrics brings together peptide protocol management, wearable health data (vi
 ### 2. Garmin Health Integration
 
 **2.1 Data Import**
-- Manual import only (no Garmin API): user signs in, then uploads:
-  - Activity CSV export (connect.garmin.com/activities) for workouts (distance, calories, active minutes)
-  - Full export JSON (ZIP) for daily health metrics (sleep, HRV, stress, Body Battery, steps, calories)
-- Import guides in-app explain which JSON files to pick (UDSFile_*.json for daily summaries; *sleepData.json for sleep)
-- Uploads add data to Garmin tables (`garmin_activities`, `garmin_data`); latest uploads update only the fields present (no null overwrites)
-- Historical coverage depends on what the user uploads from their export
+- **ZIP Upload (Recommended):** User requests full data export from garmin.com/account/datamanagement/exportdata, then drops the ZIP file directly into PepMetrics
+  - No extraction needed - app parses ZIP in browser using JSZip
+  - Automatically identifies and processes relevant files (sleepData, UDSFile, healthStatusData)
+  - Smart date filtering imports last 90 days by default
+  - Progress indicator shows import status
+- **Alternative: Individual JSON files** - Advanced users can upload specific JSON files from extracted export
+- **Activity CSV** - For workout-only data, users can export from connect.garmin.com/activities
+- Data stored in `garmin_data` table with upsert (updates existing dates, adds new ones)
+- Client-side processing avoids server upload limits and keeps data processing fast
 
 **2.2 Sleep Metrics**
 - Total sleep duration
@@ -295,70 +298,71 @@ Other:
 
 ### 6. AI Insights Engine
 
-**6.1 Correlation Analysis**
-- Automatically correlate peptide protocols with:
-  - Sleep quality changes
-  - HRV trends
-  - Weight changes
-  - Energy ratings
-  - Side effects
-  - Bloodwork changes
-- Surface statistically significant patterns
-- Example insight: "Your deep sleep increased 23% in the two weeks following MOTS-c initiation"
+**6.1 Correlation Analysis** ✅ COMPLETE
+- ✅ Automatically correlate peptide protocols with Garmin health metrics
+- ✅ 6 insight types: correlation, timing, compliance, anomaly, trend, observation
+- ✅ Statistical analysis with 4-week baseline comparison
+- ✅ Confidence levels (possible/likely/strong) for each insight
+- Example insight: "Your HRV improved 18% in the week following MOTS-c initiation"
 
 **6.2 Protocol Recommendations**
-- Timing optimization suggestions
+- Timing optimization suggestions (partially via insights)
 - Dosage adjustment considerations based on logged data
 - Fasting window reminders
 - Stacking considerations
 
-**6.3 Weekly/Monthly Summaries**
-- AI-generated narrative summary of the period
-- Key metrics overview
-- Notable correlations
-- Suggested focus areas
+**6.3 Weekly Summaries** ✅ COMPLETE
+- ✅ AI-generated narrative summary (2-3 paragraphs)
+- ✅ Key metrics overview with week-over-week changes
+- ✅ Notable correlations with supporting data
+- ✅ Actionable recommendations list
+- ✅ Manual generation via button click (automated scheduling planned)
 
-**6.4 Conversational Interface**
-- Ask questions about your data in natural language
-- "How has my sleep changed since starting retatrutide?"
-- "What was my average weight last month vs. this month?"
-- "Show me my HRV trend for the past 90 days"
+**6.4 Conversational Interface** ✅ COMPLETE
+- ✅ Interactive chat sidebar on insights page
+- ✅ Real-time streaming responses (SSE)
+- ✅ Context-aware: knows your protocols, doses, and Garmin data
+- ✅ Suggested quick-start questions
+- Example queries: "How has my sleep changed?", "What patterns do you see?"
 
 **6.5 Trend Alerts**
-- Proactive notifications for significant changes
-- Declining sleep quality warnings
-- Weight plateau detection
-- Positive trend reinforcement
+- Proactive notifications for significant changes (planned)
+- Declining sleep quality warnings (planned)
+- Weight plateau detection (planned)
+- Positive trend reinforcement (planned)
 
-**6.6 Educational Responses**
-- Ask general peptide questions
-- Get AI-generated explanations based on trusted sources
-- Context-aware (knows what peptides you're taking)
+**6.6 Educational Responses** ✅ PARTIAL
+- ✅ Chat can answer general peptide questions
+- ✅ Context-aware responses (knows what you're taking)
+- Pre-populated peptide guides (planned)
 
 ---
 
 ### 7. Dashboard & Calendar
 
-**7.1 Home Dashboard**
-- Today's scheduled injections (with quick-log)
-- Current fasting status
-- Key metrics at a glance (weight trend, sleep score, HRV)
-- Recent activity summary
-- Upcoming reminders
+**7.1 Home Dashboard** ✅ COMPLETE
+- ✅ Today's scheduled injections with quick-log (mark as taken/skipped)
+- ✅ Overdue doses alert section
+- ✅ Protocol compliance gauge (circular progress)
+- ✅ Fasting timer with target hours display
+- ✅ Key metrics at a glance (weight, HRV, water, sleep)
+- ✅ Weekly overview calendar visualization
+- ✅ AI insights widget with latest insight preview
 
-**7.2 Calendar View**
-- Monthly/weekly/daily views
-- Injection schedule overlay
-- Workout/activity overlay
-- Meal logging overlay
-- Bloodwork dates
-- Visual patterns (injection days vs. rest days)
+**7.2 Calendar View** ✅ COMPLETE
+- ✅ Monthly view with dose indicators
+- ✅ Day selection with detailed dose view
+- ✅ Dose status visualization (taken=green, pending=blue, overdue=red, skipped=gray)
+- ✅ Mark doses as taken or skipped from calendar
+- ✅ Navigate between months with today button
+- Workout/activity overlay (planned)
+- Meal logging overlay (planned)
 
 **7.3 Analytics Dashboard**
-- Customizable metric cards
-- Trend charts for selected metrics
-- Date range selection
-- Export/share capabilities
+- Customizable metric cards (planned)
+- Trend charts for selected metrics (planned)
+- Date range selection (planned)
+- Export/share capabilities (planned)
 
 ---
 
@@ -437,19 +441,28 @@ Other:
 - Alternative: Firebase if preferred
 
 ### AI Integration
-- **Anthropic Claude API** for:
-  - Bloodwork PDF parsing
-  - Insight generation
-  - Educational content generation
-  - Conversational interface
-- Consider caching common educational content to reduce API costs
+- **Anthropic Claude API** with model-specific optimization:
+  - **Claude Sonnet 4** for weekly analysis (~$0.03/analysis) - quality & depth
+  - **Claude Haiku 4.5** for chat (~$0.004/query) - cost-effective real-time
+  - Bloodwork PDF parsing (planned)
+- ✅ Weekly insight generation with 6 insight types
+- ✅ Streaming conversational interface with SSE
+- ✅ Data validation before AI calls (minimum data requirements)
+- API key stored server-side only, never exposed to client
 
 ### Garmin Integration
-- No Garmin API/OAuth (access denied). Data comes from user uploads:
-  - Activity CSV export (connect.garmin.com/activities)
-  - Full export JSON (ZIP) → users upload selected JSON files (UDSFile_*.json for daily summaries, *sleepData.json for sleep)
-- Supabase REST/Next.js APIs handle file parsing and upsert into `garmin_activities` and `garmin_data`
-- In-app instructions and AI chat guide users on which files to upload
+- **No Garmin API** (access denied for consumer apps). Data imported via user-initiated exports:
+  - **Primary method:** Full data export ZIP from garmin.com/account/datamanagement/exportdata
+  - ZIP files processed client-side using JSZip library (no server upload limits)
+  - Parser automatically identifies file types from filenames and content structure
+  - Date ranges extracted from filenames (e.g., `2025-08-27_2025-12-05_12192358_sleepData.json`)
+  - Smart filtering imports only relevant date range (default: last 90 days)
+- **Parsed data types:**
+  - Sleep: duration, stages (deep/light/REM/awake), sleep score from `*_sleepData.json`
+  - Daily summaries: steps, calories, stress, body battery from `UDSFile_*.json`
+  - Health metrics: HRV, resting HR from `*_healthStatusData.json`
+- Data sent to Next.js API endpoint, upserted into `garmin_data` table
+- In-app instructions guide users through the export process
 
 ### Hosting
 - **Vercel** for frontend (aligns with your existing workflow)
@@ -605,7 +618,7 @@ Other:
 
 ### Onboarding
 - As a new user, I want to create an account and set up my profile so the app can personalize my experience
-- As a new user, I want to connect my Garmin account so my health data syncs automatically
+- As a new user, I want to import my Garmin data (via ZIP export) so I can see my health metrics
 - As a new user, I want to add my current peptides and protocols so I can start tracking immediately
 - As a new user, I want to log existing vials so my inventory is accurate from day one
 
@@ -642,40 +655,41 @@ Other:
 ### Phase 1: MVP (8-12 weeks)
 **Goal:** Core tracking functionality that provides immediate value
 
-- User authentication (Supabase Auth)
-- Profile setup and onboarding flow
-- Peptide library (10-15 most common peptides, AI-generated content)
-- Protocol creation (basic)
-- Vial management with reconstitution calculator
-- Injection logging with site tracking
-- Basic dashboard with today's schedule
-- Injection reminders (PWA push notifications)
-- Manual weight and measurement logging
-- Daily check-in (energy, mood, side effects)
-- Basic calendar view
-- Mobile-responsive PWA
+- ✅ User authentication (Supabase Auth) - COMPLETE
+- ✅ Profile setup and settings page - COMPLETE
+- ✅ Peptide library (40+ peptides with dosage info) - COMPLETE
+- ✅ Protocol creation (daily, specific days, every-x-days, cycling) - COMPLETE
+- ✅ Vial management (size tracking in protocol modal) - COMPLETE
+- ✅ Injection logging with status tracking - COMPLETE
+- ✅ Dashboard with today's schedule, compliance gauge, fasting timer - COMPLETE
+- ✅ Notification settings UI (reminders configuration) - COMPLETE
+- ✅ Progress tracking (weight, measurements, photos) - COMPLETE
+- ✅ Daily check-in page - COMPLETE
+- ✅ Calendar view with dose status visualization - COMPLETE
+- ✅ Mobile-responsive PWA - COMPLETE
 
 ### Phase 2: Health Integration (6-8 weeks)
 **Goal:** Connect objective health data
 
-- Garmin Health API integration
-- Automatic daily sync of sleep, HRV, stress, activity
-- Health metrics dashboard
-- Trend charts for Garmin data
-- Activity logging (auto-imported from Garmin)
+- ✅ Garmin ZIP import (full data export processing) - COMPLETE
+- ✅ Client-side ZIP parsing with JSZip - COMPLETE
+- ✅ Sleep, HRV, stress, activity data extraction - COMPLETE
+- ✅ Health metrics dashboard with charts - COMPLETE
+- ✅ Trend charts for Garmin data - COMPLETE
 - Fasting window tracking
 - Basic meal logging
 
 ### Phase 3: Intelligence Layer (6-8 weeks)
 **Goal:** AI-powered insights and bloodwork
 
+- ✅ AI correlation analysis (protocol vs. health outcomes) - COMPLETE
+- ✅ Weekly AI-generated summaries with insights - COMPLETE
+- ✅ Conversational AI interface (streaming chat) - COMPLETE
+- ✅ Data validation and quality scoring - COMPLETE
 - Bloodwork PDF upload and AI parsing
 - Manual bloodwork entry
 - Biomarker trending and baseline comparison
-- AI correlation analysis (protocol vs. health outcomes)
-- Weekly AI-generated summaries
-- Insight notifications
-- Conversational AI interface for data queries
+- Insight notifications (automated alerts)
 
 ### Phase 4: Advanced Features (6-8 weeks)
 **Goal:** Power user features and polish
@@ -757,7 +771,7 @@ Other:
 ## Risk Considerations
 
 ### Technical Risks
-- **Garmin API unavailable:** Depend on CSV/JSON import; mitigate with clear in-app guidance and AI chat help
+- **Garmin API unavailable:** ✅ MITIGATED - Implemented ZIP upload with client-side parsing. Works well, no server limits, processes full export automatically.
 - **AI parsing accuracy for bloodwork:** Mitigate with mandatory user confirmation before saving
 - **PWA notification reliability on iOS:** Mitigate with email backup and consider native wrapper
 
@@ -793,9 +807,11 @@ Other:
 
 ---
 
-## Appendix: Garmin Health API Data Fields
+## Appendix: Garmin Data Fields (from Full Export)
 
-Available via Health API (based on research):
+> **Note:** Garmin Health API access was denied for consumer apps. Data is imported via full data export ZIP files from garmin.com/account/datamanagement/exportdata. The fields below are available in the exported JSON files.
+
+Available fields from export:
 
 **Sleep:**
 - sleepTimeSeconds, napTimeSeconds
@@ -826,12 +842,14 @@ Available via Health API (based on research):
 
 ## Next Steps
 
-1. Review and approve PRD
-2. Finalize app name and branding
-3. Set up development environment (Supabase project, Vercel, repository)
-4. Apply for Garmin Health API access
-5. Begin Phase 1 development
-6. Design UI/UX mockups in parallel
+1. ~~Review and approve PRD~~ - DONE
+2. ~~Finalize app name and branding~~ - PepMetrics
+3. ~~Set up development environment (Supabase project, Vercel, repository)~~ - DONE
+4. ~~Apply for Garmin Health API access~~ - Not needed, ZIP import implemented
+5. ~~Begin Phase 1 development~~ - COMPLETE
+6. ~~Phase 2: Garmin health integration~~ - COMPLETE
+7. ~~Phase 3: AI insights engine~~ - COMPLETE (core features)
+8. **Current:** Bloodwork PDF parsing, automated alerts, advanced features
 
 ---
 
