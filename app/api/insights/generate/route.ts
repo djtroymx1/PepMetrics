@@ -23,22 +23,18 @@ export async function POST() {
       )
     }
 
-    // Calculate week boundaries (current week, Monday to Sunday)
+    // Use a rolling 7-day window ending today (spec calls for "last 7 days")
     const now = new Date()
-    const dayOfWeek = now.getDay()
-    const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek
+    const analysisEnd = new Date(now)
+    analysisEnd.setHours(0, 0, 0, 0)
 
-    const weekStart = new Date(now)
-    weekStart.setDate(now.getDate() + mondayOffset)
-    weekStart.setHours(0, 0, 0, 0)
+    const analysisStart = new Date(analysisEnd)
+    analysisStart.setDate(analysisEnd.getDate() - 6)
 
-    const weekEnd = new Date(weekStart)
-    weekEnd.setDate(weekStart.getDate() + 6)
+    const weekStartStr = analysisStart.toISOString().split('T')[0]
+    const weekEndStr = analysisEnd.toISOString().split('T')[0]
 
-    const weekStartStr = weekStart.toISOString().split('T')[0]
-    const weekEndStr = weekEnd.toISOString().split('T')[0]
-
-    // Check if we already have insights for this week
+    // Check if we already have insights for this window
     const { data: existingInsights } = await supabase
       .from('ai_insights')
       .select('id, generated_at')
