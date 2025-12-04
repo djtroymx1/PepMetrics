@@ -69,24 +69,29 @@ export function useGarminImport(): UseGarminImportReturn {
     try {
       // Validate file type
       const lowerName = file.name.toLowerCase()
-      if (!lowerName.endsWith('.csv') && !lowerName.endsWith('.json')) {
-        throw new Error('Please upload a CSV (activities) or JSON (full export) file from Garmin Connect')
+      const isZip = lowerName.endsWith('.zip')
+      const isCsv = lowerName.endsWith('.csv')
+      const isJson = lowerName.endsWith('.json')
+
+      if (!isZip && !isCsv && !isJson) {
+        throw new Error('Please upload a ZIP (recommended), CSV, or JSON file from Garmin')
       }
 
-      // Validate file size (5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        throw new Error('File size exceeds 5MB limit')
+      // Validate file size (50MB for ZIP, 5MB for others)
+      const maxSize = isZip ? 50 * 1024 * 1024 : 5 * 1024 * 1024
+      if (file.size > maxSize) {
+        throw new Error(`File size exceeds ${isZip ? '50MB' : '5MB'} limit`)
       }
 
-      setUploadProgress(20)
+      setUploadProgress(10)
 
       // Create form data
       const formData = new FormData()
       formData.append('file', file)
 
-      setUploadProgress(40)
+      setUploadProgress(20)
 
-      // Upload file
+      // Upload file - ZIP files may take longer
       const response = await fetch('/api/garmin/import', {
         method: 'POST',
         body: formData,

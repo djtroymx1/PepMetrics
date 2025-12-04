@@ -329,6 +329,14 @@ export interface GarminImportResult {
   recordsUpdated: number
   dateRange: { start: string; end: string } | null
   errors: string[]
+  // ZIP import specific fields
+  dataTypes?: string[]
+  scanResult?: {
+    totalFiles: number
+    relevantFiles: number
+    skippedFiles: number
+    dataTypes: string[]
+  }
 }
 
 // ============================================

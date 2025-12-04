@@ -8,9 +8,8 @@ import {
   AlertCircle,
   ChevronDown,
   ChevronUp,
-  Clock,
-  Activity,
   RefreshCw,
+  FileArchive,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
@@ -133,7 +132,7 @@ export function GarminImport({ onImportComplete }: GarminImportProps) {
             <input
               ref={fileInputRef}
               type="file"
-              accept=".csv,.json"
+              accept=".csv,.json,.zip"
               onChange={handleFileSelect}
               className="hidden"
             />
@@ -141,21 +140,41 @@ export function GarminImport({ onImportComplete }: GarminImportProps) {
             {/* Success state */}
             {lastImportResult && !isUploading && (
               <div className="p-4 rounded-lg bg-green-500/10 border border-green-500/20">
-                <div className="flex items-center gap-3">
-                  <CheckCircle2 className="h-6 w-6 text-green-500" />
+                <div className="flex items-start gap-3">
+                  <CheckCircle2 className="h-6 w-6 text-green-500 mt-0.5" />
                   <div className="flex-1">
                     <p className="font-medium text-green-600 dark:text-green-400">
                       Import successful!
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      {lastImportResult.recordsImported} new activities imported
+                      {lastImportResult.recordsImported} days of health data imported
                       {lastImportResult.recordsUpdated > 0 && `, ${lastImportResult.recordsUpdated} updated`}
                     </p>
                     {lastImportResult.dateRange && (
                       <p className="text-xs text-muted-foreground mt-1">
-                        Date range: {lastImportResult.dateRange.start} to {lastImportResult.dateRange.end}
+                        Coverage: {lastImportResult.dateRange.start} to {lastImportResult.dateRange.end}
                       </p>
                     )}
+                    {/* Show data types imported for ZIP files */}
+                    {lastImportResult.dataTypes && lastImportResult.dataTypes.length > 0 && (
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        {lastImportResult.dataTypes.includes('sleep') && (
+                          <span className="text-xs px-2 py-0.5 rounded bg-green-500/20 text-green-700 dark:text-green-300">Sleep</span>
+                        )}
+                        {lastImportResult.dataTypes.includes('daily_summary') && (
+                          <span className="text-xs px-2 py-0.5 rounded bg-green-500/20 text-green-700 dark:text-green-300">Activity</span>
+                        )}
+                        {(lastImportResult.dataTypes.includes('hrv') || lastImportResult.dataTypes.includes('health_status')) && (
+                          <span className="text-xs px-2 py-0.5 rounded bg-green-500/20 text-green-700 dark:text-green-300">HRV</span>
+                        )}
+                        {lastImportResult.dataTypes.includes('daily_summary') && (
+                          <span className="text-xs px-2 py-0.5 rounded bg-green-500/20 text-green-700 dark:text-green-300">Stress</span>
+                        )}
+                      </div>
+                    )}
+                    <p className="text-xs text-green-600 dark:text-green-400 mt-2">
+                      Your charts and AI insights are ready!
+                    </p>
                   </div>
                   <button
                     onClick={reset}
@@ -214,18 +233,18 @@ export function GarminImport({ onImportComplete }: GarminImportProps) {
                 )}
               >
                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
-                  <Upload className="h-6 w-6 text-muted-foreground" />
+                  <FileArchive className="h-6 w-6 text-muted-foreground" />
                 </div>
                 <div className="text-center">
                   <p className="text-sm font-medium">
-                    Drag and drop your Garmin CSV file here
+                    Drop your Garmin export ZIP file here
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
                     or click to browse
                   </p>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Accepts .csv (activities) or .json (full export) from Garmin Connect
+                  Accepts .zip (recommended), .csv, or .json from Garmin
                 </p>
               </div>
             )}
@@ -250,50 +269,12 @@ export function GarminImport({ onImportComplete }: GarminImportProps) {
           <CollapsibleContent className="pt-4">
             <div className="rounded-lg bg-muted/50 p-4 space-y-4 text-sm">
               <div>
-                <h4 className="font-medium mb-2">On Desktop (Recommended) — Activity CSV:</h4>
-                <ol className="list-decimal list-inside space-y-1.5 text-muted-foreground">
-                  <li>
-                    Go to{' '}
-                    <a
-                      href="https://connect.garmin.com"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-primary hover:underline"
-                    >
-                      connect.garmin.com
-                    </a>
-                    {' '}and sign in
-                  </li>
-                  <li>Click <strong>Activities</strong> in the left sidebar</li>
-                  <li>Scroll down to load all the activities you want to include</li>
-                  <li>In the upper right corner, click <strong>Export CSV</strong></li>
-                  <li>Drag the downloaded file into the upload area above</li>
-                </ol>
-              </div>
-
-              <div>
-                <h4 className="font-medium mb-2">On Mobile:</h4>
-                <p className="text-muted-foreground">
-                  The Garmin Connect mobile app doesn&apos;t support CSV export directly.
-                  Use the desktop website for the best experience.
-                </p>
-              </div>
-
-              <div>
-                <h4 className="font-medium mb-2">What Gets Exported:</h4>
-                <div className="flex flex-wrap gap-2 text-xs">
-                  {['Activity Type', 'Duration', 'Distance', 'Calories', 'Heart Rate', 'Elevation'].map(item => (
-                    <span key={item} className="px-2 py-1 rounded bg-background">
-                      {item}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <h4 className="font-medium mb-2">Full Export (JSON) — adds Sleep, HRV, Stress, Body Battery:</h4>
+                <h4 className="font-medium mb-2 flex items-center gap-2">
+                  <span className="px-1.5 py-0.5 text-xs rounded bg-primary/20 text-primary">Recommended</span>
+                  Full Export (ZIP) — Sleep, HRV, Stress, Activity
+                </h4>
                 <p className="text-muted-foreground mb-2">
-                  Use this for complete health metrics and best AI insights.
+                  Best for AI insights. Includes sleep quality, heart rate variability, stress levels, and daily activity.
                 </p>
                 <ol className="list-decimal list-inside space-y-1.5 text-muted-foreground">
                   <li>
@@ -306,24 +287,30 @@ export function GarminImport({ onImportComplete }: GarminImportProps) {
                     >
                       garmin.com/account/datamanagement/exportdata
                     </a>
-                    {' '}and request your data export.
                   </li>
-                  <li>Garmin emails you a ZIP link; download and unzip it.</li>
-                  <li>
-                    Upload these JSON files (pick the newest ones):
-                    <ul className="list-disc list-inside ml-4 space-y-1 text-xs text-muted-foreground mt-1">
-                      <li><strong>UDSFile_*.json</strong> (in DI-Connect-Aggregator) → daily steps, calories, stress, body battery.</li>
-                      <li><strong>*sleepData.json</strong> (in DI-Connect-Wellness) → sleep duration/quality.</li>
-                    </ul>
-                  </li>
-                  <li className="text-xs text-muted-foreground">Need help? Ask the in-app AI chat which files to upload.</li>
+                  <li>Click <strong>Request Data Export</strong> and wait for email</li>
+                  <li>Download the ZIP file from the email link</li>
+                  <li><strong>Drop the ZIP file directly into the upload area above</strong> — no need to extract!</li>
+                </ol>
+                <p className="text-xs text-muted-foreground mt-2">
+                  We automatically find and import the last 90 days of health data.
+                </p>
+              </div>
+
+              <div className="pt-2 border-t border-border">
+                <h4 className="font-medium mb-2">Alternative: Activity CSV</h4>
+                <p className="text-xs text-muted-foreground mb-2">
+                  For activity data only (no sleep, HRV, or stress).
+                </p>
+                <ol className="list-decimal list-inside space-y-1 text-xs text-muted-foreground">
+                  <li>Go to <a href="https://connect.garmin.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">connect.garmin.com</a></li>
+                  <li>Click Activities → Export CSV (upper right)</li>
                 </ol>
               </div>
 
               <div className="pt-2 border-t border-border">
                 <p className="text-xs text-muted-foreground">
-                  <strong>Privacy Note:</strong> Your data stays on your device and in your PepMetrics account.
-                  We never share your health information with third parties.
+                  <strong>Privacy:</strong> Your data stays in your PepMetrics account. We never share health information with third parties.
                 </p>
               </div>
             </div>

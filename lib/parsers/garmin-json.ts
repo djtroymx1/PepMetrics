@@ -8,17 +8,24 @@
  * - Stress data (all-day stress levels)
  * - Body Battery data
  * - Daily summaries
+ * - Health status data (HRV, skin temp, respiration)
  *
  * The export comes as a ZIP file containing multiple JSON files.
- * This parser handles the individual JSON files after extraction.
+ * This parser handles ZIP files directly using JSZip.
  */
 
 import type { GarminDailySummary } from '@/lib/types'
+import {
+  scanZipForGarminFiles,
+  extractFilesFromZip,
+  type GarminFileInfo,
+  type ZipScanResult,
+} from './garmin-file-scanner'
 
 // Structure of Garmin full export files
 export interface GarminExportFile {
   fileName: string
-  type: 'sleep' | 'hrv' | 'stress' | 'body_battery' | 'daily_summary' | 'activities' | 'unknown'
+  type: 'sleep' | 'hrv' | 'stress' | 'body_battery' | 'daily_summary' | 'activities' | 'health_status' | 'unknown'
   content: unknown
 }
 
@@ -108,6 +115,19 @@ interface GarminDailySummaryEntry {
   activeSeconds?: number
 }
 
+// Health status data structure (contains HRV, skin temp, respiration)
+interface GarminHealthStatusEntry {
+  calendarDate: string
+  overallValues?: Array<{
+    metricType: string // 'HRV', 'HR', 'SPO2', 'SKIN_TEMP_C', 'RESPIRATION'
+    value?: number
+    status?: string
+    baselineLower?: number
+    baselineUpper?: number
+    percentRelativeToBaseline?: number
+  }>
+}
+
 /**
  * Parse a Garmin full export JSON file
  */
@@ -163,6 +183,11 @@ export function parseGarminExportFile(
 
   if (lowerName.includes('activities') || hasProperty(parsed, 'activityType')) {
     return { fileName, type: 'activities', content: parsed }
+  }
+
+  // Health status data (contains HRV, skin temp, respiration in overallValues array)
+  if (lowerName.includes('healthstatus') || hasProperty(parsed, 'overallValues')) {
+    return { fileName, type: 'health_status', content: parsed }
   }
 
   return { fileName, type: 'unknown', content: parsed }
@@ -328,6 +353,33 @@ function mergeEntryData(
       if (restingHeartRate !== undefined) merged.resting_hr = restingHeartRate
       break
     }
+
+    case 'health_status': {
+      // Health status data contains HRV, HR, skin temp, respiration in overallValues array
+      const healthStatus = entry as GarminHealthStatusEntry
+      if (healthStatus.overallValues) {
+        for (const metric of healthStatus.overallValues) {
+          if (metric.value === undefined) continue
+
+          switch (metric.metricType) {
+            case 'HRV':
+              // Only set HRV if not already set from dedicated HRV file
+              if (merged.hrv_avg === undefined) {
+                merged.hrv_avg = metric.value
+              }
+              break
+            case 'HR':
+              // Resting heart rate from health status
+              if (merged.resting_hr === undefined) {
+                merged.resting_hr = metric.value
+              }
+              break
+            // SKIN_TEMP_C and RESPIRATION could be added to schema later if needed
+          }
+        }
+      }
+      break
+    }
   }
 
   return merged
@@ -431,24 +483,91 @@ export function dailyDataToArray(dailyData: Map<string, Partial<GarminDailySumma
 }
 
 /**
+ * Extended result interface for ZIP parsing with scan info
+ */
+export interface ParsedGarminZipExport extends ParsedGarminExport {
+  scanResult: ZipScanResult
+}
+
+/**
  * Parse a ZIP file containing Garmin export data
- * This is a placeholder - actual ZIP parsing would require a library like JSZip
+ *
+ * @param zipFile - The ZIP file to parse
+ * @param targetDays - Number of days of data to import (default: 90)
+ * @returns Parsed Garmin data merged by date
  */
 export async function parseGarminExportZip(
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  _zipFile: File
-): Promise<ParsedGarminExport> {
-  // This would be implemented using JSZip or similar
-  // For now, return an error indicating the user needs to extract first
-  return {
-    success: false,
-    dailyData: new Map(),
-    errors: ['ZIP file parsing not yet implemented. Please extract the ZIP and upload individual JSON files.'],
-    summary: {
-      filesProcessed: 0,
-      daysOfData: 0,
-      dateRange: null,
-      dataTypes: [],
-    },
+  zipFile: File | Blob,
+  targetDays: number = 90
+): Promise<ParsedGarminZipExport> {
+  const errors: string[] = []
+
+  try {
+    // Step 1: Scan the ZIP for relevant files
+    const scanResult = await scanZipForGarminFiles(zipFile, targetDays)
+
+    if (scanResult.files.length === 0) {
+      return {
+        success: false,
+        dailyData: new Map(),
+        errors: ['No relevant Garmin data files found in the ZIP. Expected files like sleepData.json, UDSFile_*.json, etc.'],
+        summary: {
+          filesProcessed: 0,
+          daysOfData: 0,
+          dateRange: null,
+          dataTypes: [],
+        },
+        scanResult,
+      }
+    }
+
+    // Step 2: Extract the relevant files
+    const filePaths = scanResult.files.map(f => f.path)
+    const fileContents = await extractFilesFromZip(zipFile, filePaths)
+
+    // Step 3: Parse each file
+    const parsedFiles: GarminExportFile[] = []
+
+    for (const fileInfo of scanResult.files) {
+      const content = fileContents.get(fileInfo.path)
+      if (!content) {
+        errors.push(`Could not read file: ${fileInfo.filename}`)
+        continue
+      }
+
+      const parsed = parseGarminExportFile(fileInfo.filename, content)
+      if (parsed.type !== 'unknown') {
+        parsedFiles.push(parsed)
+      }
+    }
+
+    // Step 4: Process and merge all files
+    const result = processGarminExport(parsedFiles)
+
+    return {
+      ...result,
+      errors: [...result.errors, ...errors],
+      scanResult,
+    }
+  } catch (error) {
+    return {
+      success: false,
+      dailyData: new Map(),
+      errors: [`Failed to parse ZIP file: ${error instanceof Error ? error.message : 'Unknown error'}`],
+      summary: {
+        filesProcessed: 0,
+        daysOfData: 0,
+        dateRange: null,
+        dataTypes: [],
+      },
+      scanResult: {
+        files: [],
+        totalFiles: 0,
+        relevantFiles: 0,
+        skippedFiles: 0,
+        dataTypes: [],
+        overallDateRange: null,
+      },
+    }
   }
 }

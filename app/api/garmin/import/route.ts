@@ -6,10 +6,11 @@ import {
   parseGarminExportFile,
   processGarminExport,
   dailyDataToArray,
+  parseGarminExportZip,
 } from '@/lib/parsers'
 import type { GarminImportResult, ParsedGarminActivity, GarminDailySummary } from '@/lib/types'
 
-const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
+const MAX_FILE_SIZE = 50 * 1024 * 1024 // 50MB for ZIP files
 
 export async function POST(request: NextRequest) {
   try {
@@ -47,15 +48,83 @@ export async function POST(request: NextRequest) {
     const fileName = file.name.toLowerCase()
     const isCsv = fileName.endsWith('.csv')
     const isJson = fileName.endsWith('.json')
+    const isZip = fileName.endsWith('.zip') ||
+                  file.type === 'application/zip' ||
+                  file.type === 'application/x-zip-compressed'
 
-    if (!isCsv && !isJson) {
+    if (!isCsv && !isJson && !isZip) {
       return NextResponse.json(
-        { error: 'Only CSV (activities) or JSON (full export) files are supported' },
+        { error: 'Only ZIP (recommended), CSV (activities), or JSON (full export) files are supported' },
         { status: 400 }
       )
     }
 
-    // Read file content
+    // === ZIP FULL EXPORT (recommended method) ===
+    if (isZip) {
+      // Get targetDays from form data if provided, default to 90
+      const targetDaysStr = formData.get('targetDays') as string | null
+      const targetDays = targetDaysStr ? parseInt(targetDaysStr, 10) : 90
+
+      // Parse the ZIP file directly
+      const zipResult = await parseGarminExportZip(file, targetDays)
+
+      if (!zipResult.success || zipResult.dailyData.size === 0) {
+        return NextResponse.json(
+          {
+            error: 'Unable to parse Garmin ZIP export',
+            details: zipResult.errors.slice(0, 5),
+            scanResult: {
+              totalFiles: zipResult.scanResult.totalFiles,
+              relevantFiles: zipResult.scanResult.relevantFiles,
+              skippedFiles: zipResult.scanResult.skippedFiles,
+            },
+          },
+          { status: 400 }
+        )
+      }
+
+      // Convert to array and insert into database
+      const dailyArray = dailyDataToArray(zipResult.dailyData)
+      await upsertGarminDailyData(supabase, user.id, dailyArray)
+
+      // Record the import
+      const { error: importRecordError } = await supabase
+        .from('garmin_imports')
+        .insert({
+          user_id: user.id,
+          file_name: file.name,
+          file_type: 'zip_export',
+          records_imported: dailyArray.length,
+          records_skipped: zipResult.scanResult.skippedFiles,
+          records_updated: 0,
+          date_range_start: zipResult.summary.dateRange?.start || null,
+          date_range_end: zipResult.summary.dateRange?.end || null,
+          status: 'completed',
+          error_message: zipResult.errors.length > 0 ? zipResult.errors.slice(0, 5).join('; ') : null,
+        })
+
+      if (importRecordError) {
+        console.error('Failed to record ZIP import:', importRecordError)
+      }
+
+      return NextResponse.json({
+        success: true,
+        recordsImported: dailyArray.length,
+        recordsSkipped: zipResult.scanResult.skippedFiles,
+        recordsUpdated: 0,
+        dateRange: zipResult.summary.dateRange,
+        dataTypes: zipResult.summary.dataTypes,
+        errors: zipResult.errors.slice(0, 5),
+        scanResult: {
+          totalFiles: zipResult.scanResult.totalFiles,
+          relevantFiles: zipResult.scanResult.relevantFiles,
+          skippedFiles: zipResult.scanResult.skippedFiles,
+          dataTypes: zipResult.scanResult.dataTypes,
+        },
+      })
+    }
+
+    // Read file content for CSV/JSON
     const content = await file.text()
 
     // === CSV ACTIVITY IMPORT ===
