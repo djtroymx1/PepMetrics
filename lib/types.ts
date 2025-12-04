@@ -21,6 +21,7 @@ export interface Protocol {
   peptideId: string
   customPeptideName?: string
   dose: string
+  vialSize?: number  // Vial size in mg
 
   // Scheduling
   frequencyType: FrequencyType
@@ -64,12 +65,17 @@ export interface ScheduledDose {
   peptideId: string
   peptideName: string
   dose: string
+  vialSize?: number  // Vial size in mg
   scheduledDate: string
   scheduledTime?: string
+  timing: TimingPreference  // Alias for backward compat
   timingPreference: TimingPreference
   doseNumber: number
-  totalDoses: number
+  dosesPerDay: number  // Total doses per day
+  totalDoses: number  // Alias for dosesPerDay (backward compat)
   requiresFasting: boolean
+  fastingNotes?: string
+  fdaApproved?: boolean
   status: DoseLogStatus
   doseLogId?: string
 }

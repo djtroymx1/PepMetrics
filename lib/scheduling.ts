@@ -1,5 +1,5 @@
 import type { Protocol, DoseLog, ScheduledDose, DayOfWeek, DaySchedule } from './types'
-import { getPeptideById } from './peptides'
+import { getPeptideById, getStackById } from './data/peptides'
 
 // Helper to get day of week from date
 function getDayOfWeek(date: Date): DayOfWeek {
@@ -216,8 +216,14 @@ export function getUpcomingDoses(protocols: Protocol[], doseHistory: DoseLog[], 
       }
 
       if (shouldDose) {
+        // Check both peptides and stacks
         const peptide = getPeptideById(protocol.peptideId)
-        const peptideName = protocol.customPeptideName || peptide?.name || 'Unknown Peptide'
+        const stack = !peptide ? getStackById(protocol.peptideId) : null
+
+        const peptideName = protocol.customPeptideName || peptide?.name || stack?.name || 'Unknown Peptide'
+        const requiresFasting = peptide?.fastingRequired || stack?.fastingRequired || false
+        const fastingNotes = peptide?.fastingNotes
+        const fdaApproved = peptide?.fdaApproved || false
 
         for (let doseNum = 1; doseNum <= protocol.dosesPerDay; doseNum++) {
           // Check if this dose was already logged
@@ -239,12 +245,17 @@ export function getUpcomingDoses(protocols: Protocol[], doseHistory: DoseLog[], 
             peptideId: protocol.peptideId,
             peptideName,
             dose: protocol.dose,
+            vialSize: protocol.vialSize,
             scheduledDate: checkDateStr,
             scheduledTime: protocol.preferredTime,
+            timing: protocol.timingPreference,
             timingPreference: protocol.timingPreference,
             doseNumber: doseNum,
+            dosesPerDay: protocol.dosesPerDay,
             totalDoses: protocol.dosesPerDay,
-            requiresFasting: peptide?.requiresFasting || false,
+            requiresFasting,
+            fastingNotes,
+            fdaApproved,
             status,
             doseLogId: existingLog?.id,
           })

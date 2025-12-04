@@ -1,14 +1,19 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { X, Syringe, Utensils, Weight, Droplets, Loader2, Check, Clock, AlertCircle } from "lucide-react"
+import { X, Syringe, Utensils, Weight, Droplets, Loader2, Check, Clock, AlertCircle, Shield, AlertTriangle } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { createClient } from "@/lib/supabase/client"
 import { useAuth } from "@/components/providers/auth-provider"
 import { getProtocols, getDoseLogs, markDoseAsTaken, markDoseAsSkipped } from "@/lib/storage"
 import { getDosesToday, getOverdueDoses } from "@/lib/scheduling"
-import { getPeptideById } from "@/lib/peptides"
 import { TimingBadge } from "@/components/timing-badge"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import type { Protocol, DoseLog, ScheduledDose } from "@/lib/types"
 
 interface QuickLogModalProps {
@@ -263,48 +268,75 @@ function DoseActionCard({
   onMarkSkipped: () => void
 }) {
   return (
-    <div className={cn(
-      "flex items-center justify-between p-4 rounded-lg border",
-      dose.status === 'overdue'
-        ? "border-red-500/30 bg-red-500/5"
-        : "border-border bg-card"
-    )}>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 mb-1">
-          <span className="font-medium truncate">{dose.peptideName}</span>
-          {dose.dosesPerDay > 1 && (
-            <span className="text-xs text-muted-foreground">
-              (Dose {dose.doseNumber}/{dose.dosesPerDay})
-            </span>
+    <TooltipProvider>
+      <div className={cn(
+        "flex items-center justify-between p-4 rounded-lg border",
+        dose.status === 'overdue'
+          ? "border-red-500/30 bg-red-500/5"
+          : "border-border bg-card"
+      )}>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-1 flex-wrap">
+            <span className="font-medium truncate">{dose.peptideName}</span>
+            {dose.dosesPerDay > 1 && (
+              <span className="text-xs text-muted-foreground">
+                (Dose {dose.doseNumber}/{dose.dosesPerDay})
+              </span>
+            )}
+            {dose.fdaApproved && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="inline-flex items-center">
+                    <Shield className="h-3.5 w-3.5 text-green-500" />
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent>FDA Approved</TooltipContent>
+              </Tooltip>
+            )}
+            {dose.requiresFasting && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="inline-flex items-center">
+                    <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="max-w-xs">{dose.fastingNotes || 'Fasting required for optimal results'}</p>
+                </TooltipContent>
+              </Tooltip>
+            )}
+          </div>
+          <div className="flex items-center gap-3 text-sm text-muted-foreground">
+            <span className="font-mono tabular-nums">{dose.dose}</span>
+            {dose.vialSize && (
+              <span className="text-xs">({dose.vialSize}mg vial)</span>
+            )}
+            <TimingBadge timing={dose.timing} size="sm" variant="subtle" />
+          </div>
+          {dose.status === 'overdue' && (
+            <p className="text-xs text-red-500 mt-1">
+              From {new Date(dose.scheduledDate).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+            </p>
           )}
         </div>
-        <div className="flex items-center gap-3 text-sm text-muted-foreground">
-          <span className="font-mono tabular-nums">{dose.dose}</span>
-          <TimingBadge timing={dose.timing} size="sm" variant="subtle" />
+        <div className="flex items-center gap-2 ml-4">
+          <button
+            onClick={onMarkSkipped}
+            className="p-2 rounded-lg border border-border hover:bg-muted transition-colors"
+            title="Skip"
+          >
+            <X className="h-4 w-4 text-muted-foreground" />
+          </button>
+          <button
+            onClick={onMarkTaken}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-green-500 text-white text-sm font-medium hover:bg-green-600 transition-colors"
+          >
+            <Check className="h-4 w-4" />
+            Take
+          </button>
         </div>
-        {dose.status === 'overdue' && (
-          <p className="text-xs text-red-500 mt-1">
-            From {new Date(dose.scheduledDate).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
-          </p>
-        )}
       </div>
-      <div className="flex items-center gap-2 ml-4">
-        <button
-          onClick={onMarkSkipped}
-          className="p-2 rounded-lg border border-border hover:bg-muted transition-colors"
-          title="Skip"
-        >
-          <X className="h-4 w-4 text-muted-foreground" />
-        </button>
-        <button
-          onClick={onMarkTaken}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-green-500 text-white text-sm font-medium hover:bg-green-600 transition-colors"
-        >
-          <Check className="h-4 w-4" />
-          Take
-        </button>
-      </div>
-    </div>
+    </TooltipProvider>
   )
 }
 

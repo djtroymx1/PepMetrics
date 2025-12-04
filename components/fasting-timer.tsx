@@ -47,7 +47,7 @@ export function FastingTimer({
   const hasMorePeptides = fastingRequiredPeptides.length > 3
 
   return (
-    <div className="rounded-2xl bg-card p-6 border border-border h-full">
+    <div className="rounded-2xl bg-card p-6 border border-border">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${isFasted ? 'bg-green-500/10' : 'bg-amber-500/10'}`}>

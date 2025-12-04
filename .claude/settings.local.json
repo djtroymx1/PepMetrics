@@ -23,7 +23,8 @@
       "Bash(taskkill:*)",
       "Bash(node screenshot-collage.js:*)",
       "Bash(npm uninstall:*)",
-      "Bash(del \"c:\\Users\\fladj\\PepMetrics\\pepmetrics\\screenshot-collage.js\")"
+      "Bash(del \"c:\\Users\\fladj\\PepMetrics\\pepmetrics\\screenshot-collage.js\")",
+      "Bash(mkdir:*)"
     ],
     "deny": [],
     "ask": []

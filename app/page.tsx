@@ -190,7 +190,7 @@ export default function DashboardPage() {
               </Link>
             </div>
 
-            <div className="grid grid-cols-7 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-2">
               {weeklySchedule.map((day) => (
                 <div
                   key={day.date}
@@ -237,7 +237,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Bottom row - metrics */}
-          <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
             <MetricCard
               label="Weight"
               value={185.2}
