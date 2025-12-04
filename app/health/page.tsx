@@ -40,14 +40,16 @@ export default async function HealthPage() {
   let garminData: GarminRow[] = []
 
   if (user) {
+    // Get most recent 30 days of data, then reverse to show chronologically
     const { data } = await supabase
       .from('garmin_data')
       .select('*')
       .eq('user_id', user.id)
-      .order('data_date', { ascending: true })
+      .order('data_date', { ascending: false })
       .limit(30)
 
-    garminData = (data || []) as GarminRow[]
+    // Reverse to get chronological order (oldest to newest) for charts
+    garminData = ((data || []) as GarminRow[]).reverse()
   }
 
   const sleepChartData = garminData.map((row) => {

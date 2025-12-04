@@ -344,36 +344,36 @@ export async function GET() {
       )
     }
 
-    // Get latest data range from garmin_activities
-    const { data: activityRange } = await supabase
-      .from('garmin_activities')
-      .select('start_time')
+    // Get data stats from garmin_data (where ZIP imports go)
+    const { data: earliestData } = await supabase
+      .from('garmin_data')
+      .select('data_date')
       .eq('user_id', user.id)
-      .order('start_time', { ascending: true })
+      .order('data_date', { ascending: true })
       .limit(1)
       .single()
 
-    const { data: latestActivity } = await supabase
-      .from('garmin_activities')
-      .select('start_time')
+    const { data: latestData } = await supabase
+      .from('garmin_data')
+      .select('data_date')
       .eq('user_id', user.id)
-      .order('start_time', { ascending: false })
+      .order('data_date', { ascending: false })
       .limit(1)
       .single()
 
-    const { count: activityCount } = await supabase
-      .from('garmin_activities')
+    const { count: dataCount } = await supabase
+      .from('garmin_data')
       .select('*', { count: 'exact', head: true })
       .eq('user_id', user.id)
 
     return NextResponse.json({
       imports,
       activityStats: {
-        totalActivities: activityCount || 0,
-        dateRange: activityRange && latestActivity
+        totalActivities: dataCount || 0,
+        dateRange: earliestData && latestData
           ? {
-              start: activityRange.start_time.split('T')[0],
-              end: latestActivity.start_time.split('T')[0],
+              start: earliestData.data_date,
+              end: latestData.data_date,
             }
           : null,
       },
