@@ -26,7 +26,8 @@ export interface DataValidationResult {
 
 // Minimum requirements for analysis
 const MIN_GARMIN_DAYS = 7
-const MIN_DOSE_LOGS = 3
+// Allow insights even if no dose logs; we'll warn instead of blocking
+const MIN_DOSE_LOGS = 0
 const MIN_BASELINE_DAYS = 14
 const IDEAL_GARMIN_DAYS = 14
 const IDEAL_BASELINE_DAYS = 28
@@ -48,8 +49,11 @@ export function validateDataSufficiency(data: UserAnalysisData): DataValidationR
     missingData.push(`At least ${MIN_GARMIN_DAYS} days of Garmin data (you have ${garminDays})`)
   }
 
-  if (data.doseLogs.length < MIN_DOSE_LOGS) {
-    missingData.push(`At least ${MIN_DOSE_LOGS} logged doses (you have ${data.doseLogs.length})`)
+  // Dose logs: warn if none, but don't block analysis
+  if (data.doseLogs.length === 0) {
+    warnings.push('No dose logs found in the analysis window — correlations will be limited')
+  } else if (data.doseLogs.length < 3) {
+    warnings.push(`Only ${data.doseLogs.length} dose logs in the window — more logs improve correlation confidence`)
   }
 
   if (data.activeProtocols.length === 0) {
@@ -182,10 +186,7 @@ export function canGenerateWeeklyAnalysis(
     return { canGenerate: false, reason: 'Need at least 3 days of Garmin data' }
   }
 
-  if (doseLogs.length === 0) {
-    return { canGenerate: false, reason: 'No dose logs found for the analysis period' }
-  }
-
+  // Allow generation without dose logs; just warn in the UI
   return { canGenerate: true }
 }
 
