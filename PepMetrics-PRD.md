@@ -119,10 +119,12 @@ PepMetrics brings together peptide protocol management, wearable health data (vi
 ### 2. Garmin Health Integration
 
 **2.1 Data Import**
-- OAuth connection to Garmin Connect via Health API
-- Automatic daily sync of health metrics
-- Manual CSV import as fallback option
-- Historical data import on initial connection
+- Manual import only (no Garmin API): user signs in, then uploads:
+  - Activity CSV export (connect.garmin.com/activities) for workouts (distance, calories, active minutes)
+  - Full export JSON (ZIP) for daily health metrics (sleep, HRV, stress, Body Battery, steps, calories)
+- Import guides in-app explain which JSON files to pick (UDSFile_*.json for daily summaries; *sleepData.json for sleep)
+- Uploads add data to Garmin tables (`garmin_activities`, `garmin_data`); latest uploads update only the fields present (no null overwrites)
+- Historical coverage depends on what the user uploads from their export
 
 **2.2 Sleep Metrics**
 - Total sleep duration
@@ -408,7 +410,7 @@ Other:
 - Data backup options
 
 **9.4 Connected Services**
-- Garmin connection management
+- Garmin data import history/status (CSV/JSON uploads)
 - Future integrations management
 
 **9.5 Subscription Management**
@@ -443,10 +445,11 @@ Other:
 - Consider caching common educational content to reduce API costs
 
 ### Garmin Integration
-- Apply for Garmin Health API access via developer portal
-- OAuth 2.0 flow for user authorization
-- Webhook-based data delivery (Garmin pushes data to your endpoint)
-- Alternative: Terra API for simplified integration (adds cost but reduces complexity)
+- No Garmin API/OAuth (access denied). Data comes from user uploads:
+  - Activity CSV export (connect.garmin.com/activities)
+  - Full export JSON (ZIP) → users upload selected JSON files (UDSFile_*.json for daily summaries, *sleepData.json for sleep)
+- Supabase REST/Next.js APIs handle file parsing and upsert into `garmin_activities` and `garmin_data`
+- In-app instructions and AI chat guide users on which files to upload
 
 ### Hosting
 - **Vercel** for frontend (aligns with your existing workflow)
@@ -473,7 +476,7 @@ Other:
 - id, email, created_at
 - profile (age, weight, height, sex, goals, units_preference)
 - subscription_tier
-- garmin_connected (boolean)
+- last_garmin_import_at (timestamp)
 - onboarding_completed
 
 ### Peptide (Library)
@@ -711,7 +714,7 @@ Other:
 
 **Premium Tier ($9.99/month or $79.99/year):**
 - Unlimited peptides
-- Garmin integration
+- Garmin import (CSV/JSON)
 - Bloodwork upload and AI parsing
 - Unlimited AI insights and queries
 - Unlimited data history
@@ -754,7 +757,7 @@ Other:
 ## Risk Considerations
 
 ### Technical Risks
-- **Garmin API approval delay:** Mitigate with CSV import fallback
+- **Garmin API unavailable:** Depend on CSV/JSON import; mitigate with clear in-app guidance and AI chat help
 - **AI parsing accuracy for bloodwork:** Mitigate with mandatory user confirmation before saving
 - **PWA notification reliability on iOS:** Mitigate with email backup and consider native wrapper
 
