@@ -1,11 +1,11 @@
 "use client"
 
-import { useState, useMemo, useCallback } from "react"
+import { useState, useMemo, useCallback, useEffect } from "react"
 import { X, Loader2, AlertTriangle, Shield, Layers } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { PeptideSelector, VialSizeSelector, StackConcentrationInput, type PeptideOrStack } from "@/components/peptide"
 import { getPeptideById, getStackById, formatDoseRange, getStackComponents } from "@/lib/data/peptides"
-import { addProtocol } from "@/lib/storage"
+import { addProtocol, updateProtocol } from "@/lib/storage"
 import type { FrequencyType, TimingPreference, DayOfWeek, Protocol, StackComponentConcentration } from "@/lib/types"
 import { TIMING_INFO, DAY_OF_WEEK_SHORT } from "@/lib/types"
 import {
@@ -19,11 +19,14 @@ interface AddProtocolModalProps {
   isOpen: boolean
   onClose: () => void
   onProtocolAdded?: (protocol: Protocol) => void
+  editProtocol?: Protocol | null
+  onProtocolUpdated?: (protocol: Protocol) => void
 }
 
 const DAYS_OF_WEEK: DayOfWeek[] = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
 
-export function AddProtocolModal({ isOpen, onClose, onProtocolAdded }: AddProtocolModalProps) {
+export function AddProtocolModal({ isOpen, onClose, onProtocolAdded, editProtocol, onProtocolUpdated }: AddProtocolModalProps) {
+  const isEditMode = !!editProtocol
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -43,6 +46,42 @@ export function AddProtocolModal({ isOpen, onClose, onProtocolAdded }: AddProtoc
   const [preferredTime, setPreferredTime] = useState("")
   const [dosesPerDay, setDosesPerDay] = useState("1")
   const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0])
+
+  // Populate form when editing
+  useEffect(() => {
+    if (editProtocol && isOpen) {
+      setPeptideId(editProtocol.peptideId)
+      setCustomPeptideName(editProtocol.customPeptideName || "")
+      setVialSize(editProtocol.vialSize ?? null)
+      setStackConcentrations(editProtocol.stackConcentrations || [])
+      setDose(editProtocol.dose)
+      setFrequencyType(editProtocol.frequencyType)
+      setSpecificDays(editProtocol.specificDays || [])
+      setIntervalDays(String(editProtocol.intervalDays || 2))
+      setCycleOnDays(String(editProtocol.cycleOnDays || 5))
+      setCycleOffDays(String(editProtocol.cycleOffDays || 2))
+      setTimingPreference(editProtocol.timingPreference)
+      setPreferredTime(editProtocol.preferredTime || "")
+      setDosesPerDay(String(editProtocol.dosesPerDay))
+      setStartDate(editProtocol.startDate)
+
+      // Set selectedItem based on peptideId
+      const peptide = getPeptideById(editProtocol.peptideId)
+      if (peptide) {
+        setSelectedItem({ type: 'peptide', data: peptide })
+      } else {
+        const stack = getStackById(editProtocol.peptideId)
+        if (stack) {
+          setSelectedItem({ type: 'stack', data: stack })
+        } else if (editProtocol.peptideId === 'custom') {
+          setSelectedItem({ type: 'custom' })
+        }
+      }
+    } else if (!editProtocol && isOpen) {
+      // Reset form when opening in add mode
+      resetForm()
+    }
+  }, [editProtocol, isOpen])
 
   // Get peptide/stack info for display
   const itemInfo = useMemo(() => {
@@ -117,8 +156,8 @@ export function AddProtocolModal({ isOpen, onClose, onProtocolAdded }: AddProtoc
         }
       }
 
-      const protocolData: Omit<Protocol, 'id' | 'createdAt' | 'updatedAt'> = {
-        odId: crypto.randomUUID(),
+      const protocolData = {
+        odId: isEditMode ? editProtocol.odId : crypto.randomUUID(),
         peptideId: peptideId || 'custom',
         customPeptideName: peptideId === 'custom' || !peptideId ? customPeptideName : displayName,
         dose: dose.trim(),
@@ -134,12 +173,19 @@ export function AddProtocolModal({ isOpen, onClose, onProtocolAdded }: AddProtoc
         timingPreference,
         preferredTime: preferredTime || undefined,
         dosesPerDay: parseInt(dosesPerDay),
-        status: 'active',
+        status: isEditMode ? editProtocol.status : 'active' as const,
         startDate,
       }
 
-      const newProtocol = addProtocol(protocolData)
-      onProtocolAdded?.(newProtocol)
+      if (isEditMode) {
+        const updatedProtocol = updateProtocol(editProtocol.id, protocolData)
+        if (updatedProtocol) {
+          onProtocolUpdated?.(updatedProtocol)
+        }
+      } else {
+        const newProtocol = addProtocol(protocolData)
+        onProtocolAdded?.(newProtocol)
+      }
       resetForm()
       onClose()
     } catch (err) {
@@ -177,7 +223,7 @@ export function AddProtocolModal({ isOpen, onClose, onProtocolAdded }: AddProtoc
 
         <div className="relative w-full max-w-lg mx-4 mb-4 sm:mb-0 rounded-lg border border-border bg-card shadow-xl max-h-[90vh] overflow-y-auto">
           <div className="flex items-center justify-between border-b border-border p-4 sticky top-0 bg-card z-10">
-            <h2 className="text-xl font-semibold">Add Protocol</h2>
+            <h2 className="text-xl font-semibold">{isEditMode ? 'Edit Protocol' : 'Add Protocol'}</h2>
             <button onClick={onClose} className="rounded-md p-1 hover:bg-muted transition-colors">
               <X className="h-5 w-5 text-muted-foreground" />
             </button>
@@ -494,7 +540,7 @@ export function AddProtocolModal({ isOpen, onClose, onProtocolAdded }: AddProtoc
                 className="px-4 py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center gap-2"
               >
                 {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-                Create Protocol
+                {isEditMode ? 'Save Changes' : 'Create Protocol'}
               </button>
             </div>
           </div>

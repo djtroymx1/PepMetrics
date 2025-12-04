@@ -254,7 +254,7 @@ export function PeptideSelector({
             {/* Individual Peptides Section */}
             {Object.keys(groupedPeptides).length > 0 && (
               <div>
-                <div className="px-3 py-2 text-xs font-semibold text-muted-foreground bg-muted/30 uppercase tracking-wider sticky top-0">
+                <div className="px-3 py-2 text-xs font-semibold text-muted-foreground bg-muted/30 uppercase tracking-wider">
                   Individual Peptides
                 </div>
                 {PEPTIDE_CATEGORIES.map(category => {
@@ -283,7 +283,7 @@ export function PeptideSelector({
             {/* Stacks Section */}
             {showStacks && Object.keys(groupedStacks).length > 0 && (
               <div>
-                <div className="px-3 py-2 text-xs font-semibold text-muted-foreground bg-muted/30 uppercase tracking-wider sticky top-0 border-t border-border">
+                <div className="px-3 py-2 text-xs font-semibold text-muted-foreground bg-muted/30 uppercase tracking-wider border-t border-border">
                   Pre-Made Stacks
                 </div>
                 {STACK_CATEGORIES.map(category => {

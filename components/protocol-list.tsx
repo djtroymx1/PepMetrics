@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { Clock, MoreVertical, Plus, Loader2, Pause, Play, Trash2, ChevronDown, ChevronUp, AlertCircle, Check } from "lucide-react"
+import { Clock, MoreVertical, Plus, Loader2, Pause, Play, Trash2, ChevronDown, ChevronUp, AlertCircle, Check, Pencil } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { getProtocols, updateProtocol, deleteProtocol as removeProtocol, getDoseLogs, markDoseAsTaken } from "@/lib/storage"
 import { getPeptideById } from "@/lib/peptides"
@@ -16,6 +16,7 @@ export function ProtocolList() {
   const [loading, setLoading] = useState(true)
   const [selectedProtocol, setSelectedProtocol] = useState<string | null>(null)
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+  const [editingProtocol, setEditingProtocol] = useState<Protocol | null>(null)
   const [showPaused, setShowPaused] = useState(false)
 
   const loadData = useCallback(() => {
@@ -63,6 +64,16 @@ export function ProtocolList() {
 
     markDoseAsTaken(protocolId, today, doseNumber, peptideName, protocol.dose)
     loadData()
+  }
+
+  const handleEdit = (protocol: Protocol) => {
+    setEditingProtocol(protocol)
+    setIsAddModalOpen(true)
+  }
+
+  const handleModalClose = () => {
+    setIsAddModalOpen(false)
+    setEditingProtocol(null)
   }
 
   if (loading) {
@@ -136,6 +147,7 @@ export function ProtocolList() {
             onToggleStatus={() => handleToggleStatus(protocol.id)}
             onDelete={() => handleDelete(protocol.id)}
             onMarkTaken={() => handleMarkTaken(protocol.id)}
+            onEdit={() => handleEdit(protocol)}
           />
         ))}
       </div>
@@ -162,6 +174,7 @@ export function ProtocolList() {
                   onSelect={() => setSelectedProtocol(protocol.id)}
                   onToggleStatus={() => handleToggleStatus(protocol.id)}
                   onDelete={() => handleDelete(protocol.id)}
+                  onEdit={() => handleEdit(protocol)}
                 />
               ))}
             </div>
@@ -171,8 +184,10 @@ export function ProtocolList() {
 
       <AddProtocolModal
         isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
+        onClose={handleModalClose}
         onProtocolAdded={handleProtocolAdded}
+        editProtocol={editingProtocol}
+        onProtocolUpdated={handleProtocolAdded}
       />
     </div>
   )
@@ -186,6 +201,7 @@ interface ProtocolCardProps {
   onToggleStatus: () => void
   onDelete: () => void
   onMarkTaken?: () => void
+  onEdit?: () => void
 }
 
 function ProtocolCard({
@@ -196,6 +212,7 @@ function ProtocolCard({
   onToggleStatus,
   onDelete,
   onMarkTaken,
+  onEdit,
 }: ProtocolCardProps) {
   const [showMenu, setShowMenu] = useState(false)
   const peptide = getPeptideById(protocol.peptideId)
@@ -307,6 +324,19 @@ function ProtocolCard({
                   onClick={() => setShowMenu(false)}
                 />
                 <div className="absolute right-0 top-8 z-20 w-40 rounded-lg border border-border bg-card shadow-lg py-1">
+                  {onEdit && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        onEdit()
+                        setShowMenu(false)
+                      }}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-muted transition-colors"
+                    >
+                      <Pencil className="h-4 w-4" />
+                      Edit
+                    </button>
+                  )}
                   <button
                     onClick={(e) => {
                       e.stopPropagation()
