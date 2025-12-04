@@ -3,10 +3,10 @@
 import { useState, useMemo, useCallback } from "react"
 import { X, Loader2, AlertTriangle, Shield, Layers } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { PeptideSelector, VialSizeSelector, type PeptideOrStack } from "@/components/peptide"
+import { PeptideSelector, VialSizeSelector, StackConcentrationInput, type PeptideOrStack } from "@/components/peptide"
 import { getPeptideById, getStackById, formatDoseRange, getStackComponents } from "@/lib/data/peptides"
 import { addProtocol } from "@/lib/storage"
-import type { FrequencyType, TimingPreference, DayOfWeek, Protocol } from "@/lib/types"
+import type { FrequencyType, TimingPreference, DayOfWeek, Protocol, StackComponentConcentration } from "@/lib/types"
 import { TIMING_INFO, DAY_OF_WEEK_SHORT } from "@/lib/types"
 import {
   Tooltip,
@@ -32,6 +32,7 @@ export function AddProtocolModal({ isOpen, onClose, onProtocolAdded }: AddProtoc
   const [selectedItem, setSelectedItem] = useState<PeptideOrStack | null>(null)
   const [customPeptideName, setCustomPeptideName] = useState("")
   const [vialSize, setVialSize] = useState<number | null>(null)
+  const [stackConcentrations, setStackConcentrations] = useState<StackComponentConcentration[]>([])
   const [dose, setDose] = useState("")
   const [frequencyType, setFrequencyType] = useState<FrequencyType>("daily")
   const [specificDays, setSpecificDays] = useState<DayOfWeek[]>([])
@@ -56,28 +57,25 @@ export function AddProtocolModal({ isOpen, onClose, onProtocolAdded }: AddProtoc
     return null
   }, [peptideId])
 
+  // Determine if this is a stack
+  const isStack = itemInfo?.type === 'stack'
+
   // Handle peptide selection change
   const handlePeptideChange = useCallback((id: string | null, item: PeptideOrStack | null) => {
     setPeptideId(id)
     setSelectedItem(item)
     setVialSize(null)
+    setStackConcentrations([])
 
     if (item?.type === 'peptide') {
       // Set defaults from peptide
       if (item.data.fastingRequired) {
         setTimingPreference("morning-fasted")
       }
-      // Set first vial size as default if available
-      if (item.data.vialSizes.length > 0) {
-        setVialSize(item.data.vialSizes[0])
-      }
     } else if (item?.type === 'stack') {
       // Set defaults from stack
       if (item.data.fastingRequired) {
         setTimingPreference("morning-fasted")
-      }
-      if (item.data.vialSizes.length > 0) {
-        setVialSize(item.data.vialSizes[0])
       }
     }
   }, [])
@@ -124,7 +122,9 @@ export function AddProtocolModal({ isOpen, onClose, onProtocolAdded }: AddProtoc
         peptideId: peptideId || 'custom',
         customPeptideName: peptideId === 'custom' || !peptideId ? customPeptideName : displayName,
         dose: dose.trim(),
-        vialSize: vialSize ?? undefined,
+        // For individual peptides, use vialSize; for stacks, use stackConcentrations
+        vialSize: !isStack ? (vialSize ?? undefined) : undefined,
+        stackConcentrations: isStack && stackConcentrations.length > 0 ? stackConcentrations : undefined,
         frequencyType,
         specificDays: frequencyType === 'specific-days' ? specificDays : undefined,
         intervalDays: frequencyType === 'every-x-days' ? parseInt(intervalDays) : undefined,
@@ -154,6 +154,7 @@ export function AddProtocolModal({ isOpen, onClose, onProtocolAdded }: AddProtoc
     setSelectedItem(null)
     setCustomPeptideName("")
     setVialSize(null)
+    setStackConcentrations([])
     setDose("")
     setFrequencyType("daily")
     setSpecificDays([])
@@ -251,32 +252,45 @@ export function AddProtocolModal({ isOpen, onClose, onProtocolAdded }: AddProtoc
                           </span>
                         )}
                       </div>
-                      <p className="text-xs text-muted-foreground mb-1">Components:</p>
+                      <p className="text-xs text-muted-foreground mb-1">Contains:</p>
                       <div className="flex flex-wrap gap-1">
                         {getStackComponents(itemInfo.data).map((p, i) => (
                           <span key={i} className="text-xs bg-muted px-2 py-0.5 rounded">
                             {p?.name || 'Unknown'}
-                            {itemInfo.data.components[i].amount && ` (${itemInfo.data.components[i].amount}mg)`}
                           </span>
                         ))}
                       </div>
-                      {itemInfo.data.totalStrength && (
-                        <p className="text-xs text-muted-foreground mt-2">
-                          Total strength: {itemInfo.data.totalStrength}mg
-                        </p>
-                      )}
                     </>
                   )}
                 </div>
               )}
             </div>
 
-            {/* Vial Size */}
-            <VialSizeSelector
-              peptideId={peptideId}
-              value={vialSize}
-              onChange={setVialSize}
-            />
+            {/* Vial Size / Stack Concentrations */}
+            {peptideId && peptideId !== 'custom' && (
+              isStack && itemInfo?.type === 'stack' ? (
+                <StackConcentrationInput
+                  stackId={peptideId}
+                  value={stackConcentrations}
+                  onChange={setStackConcentrations}
+                />
+              ) : (
+                <VialSizeSelector
+                  peptideId={peptideId}
+                  value={vialSize}
+                  onChange={setVialSize}
+                />
+              )
+            )}
+
+            {/* Custom peptide vial size */}
+            {peptideId === 'custom' && (
+              <VialSizeSelector
+                peptideId={peptideId}
+                value={vialSize}
+                onChange={setVialSize}
+              />
+            )}
 
             {/* Dose */}
             <div>
@@ -284,7 +298,7 @@ export function AddProtocolModal({ isOpen, onClose, onProtocolAdded }: AddProtoc
               <div className="flex gap-2">
                 <input
                   type="text"
-                  placeholder="e.g., 250mcg, 2mg"
+                  placeholder="e.g., 250mcg, 2mg, 0.1ml"
                   value={dose}
                   onChange={(e) => setDose(e.target.value)}
                   className="flex-1 rounded-lg border border-border bg-muted px-3 py-2.5 text-sm font-mono focus:border-primary focus:ring-1 focus:ring-primary"
@@ -293,6 +307,11 @@ export function AddProtocolModal({ isOpen, onClose, onProtocolAdded }: AddProtoc
               {itemInfo?.type === 'peptide' && (
                 <p className="text-xs text-muted-foreground mt-1">
                   Typical range: {formatDoseRange(itemInfo.data.doseRange)}
+                </p>
+              )}
+              {isStack && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  Enter your injection volume (e.g., 0.1ml) or total units
                 </p>
               )}
             </div>

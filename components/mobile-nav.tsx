@@ -28,7 +28,7 @@ export function MobileNav() {
         key={item.name}
         href={item.href}
         className={cn(
-          "flex flex-col items-center gap-1 px-4 py-3 text-xs font-medium transition-colors",
+          "flex flex-1 flex-col items-center gap-1 py-3 text-xs font-medium transition-colors",
           isActive ? "text-primary" : "text-muted-foreground",
         )}
       >
@@ -40,25 +40,21 @@ export function MobileNav() {
 
   return (
     <>
-      <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-card lg:hidden">
-        <div className="flex items-center justify-around">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-card/95 backdrop-blur lg:hidden">
+        <div className="relative grid grid-cols-5 items-center px-1">
           {mobileNav.slice(0, 2).map(renderLink)}
 
-          <div className="flex items-center gap-0">
-            {renderLink(mobileNav[2])}
+          <div className="col-span-1" aria-hidden />
 
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="flex h-14 w-14 -mt-8 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg hover:bg-primary/90 transition-colors"
-              aria-label="Open quick log"
-            >
-              <Plus className="h-6 w-6" />
-            </button>
+          {mobileNav.slice(2).map(renderLink)}
 
-            {renderLink(mobileNav[3])}
-          </div>
-
-          {mobileNav.slice(4).map(renderLink)}
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="absolute left-1/2 -top-6 flex h-14 w-14 -translate-x-1/2 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-xl shadow-primary/30 ring-4 ring-primary/20 transition hover:translate-y-[-2px] hover:bg-primary/90"
+            aria-label="Open quick log"
+          >
+            <Plus className="h-6 w-6" />
+          </button>
         </div>
       </nav>
 

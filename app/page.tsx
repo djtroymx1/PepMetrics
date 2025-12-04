@@ -16,6 +16,7 @@ import { getPeptideById } from "@/lib/peptides"
 import type { Protocol, DoseLog, ScheduledDose, DaySchedule } from "@/lib/types"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
+import { QuickLogFab } from "@/components/quick-log-fab"
 
 export default function DashboardPage() {
   const [protocols, setProtocols] = useState<Protocol[]>([])
@@ -79,6 +80,7 @@ export default function DashboardPage() {
     <div className="min-h-screen">
       <AppSidebar />
       <MobileNav />
+      <QuickLogFab />
 
       <main className="lg:pl-64 pb-20 lg:pb-0">
         <div className="p-6 lg:p-8 max-w-7xl mx-auto">

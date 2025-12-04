@@ -15,13 +15,21 @@ export type ProtocolStatus = 'active' | 'paused'
 
 export type DoseLogStatus = 'pending' | 'taken' | 'skipped' | 'overdue'
 
+// For stacks: concentration of each component in the vial
+export interface StackComponentConcentration {
+  peptideId: string
+  peptideName: string
+  amount: number  // in mg
+}
+
 export interface Protocol {
   id: string
   odId: string
   peptideId: string
   customPeptideName?: string
   dose: string
-  vialSize?: number  // Vial size in mg
+  vialSize?: number  // Vial size in mg (for individual peptides)
+  stackConcentrations?: StackComponentConcentration[]  // For stacks: per-component amounts
 
   // Scheduling
   frequencyType: FrequencyType

@@ -1,8 +1,8 @@
 "use client"
 
-import { useMemo } from "react"
+import { useMemo, useState, useEffect } from "react"
 import { cn } from "@/lib/utils"
-import { formatVialSize, getPeptideById, getStackById, type Peptide, type PeptideStack } from "@/lib/data/peptides"
+import { getPeptideById, getStackById } from "@/lib/data/peptides"
 
 export interface VialSizeSelectorProps {
   peptideId: string | null
@@ -19,116 +19,98 @@ export function VialSizeSelector({
   className,
   disabled = false,
 }: VialSizeSelectorProps) {
-  // Get available vial sizes based on selected peptide or stack
-  const { vialSizes, item } = useMemo(() => {
+  const [inputValue, setInputValue] = useState(value ? String(value) : '')
+
+  // Sync input with external value changes
+  useEffect(() => {
+    setInputValue(value ? String(value) : '')
+  }, [value])
+
+  // Get common vial sizes as suggestions
+  const commonSizes = useMemo(() => {
     if (!peptideId || peptideId === 'custom') {
-      return { vialSizes: [], item: null }
+      return []
     }
 
-    // Check if it's a peptide
     const peptide = getPeptideById(peptideId)
     if (peptide) {
-      return { vialSizes: peptide.vialSizes, item: peptide }
+      return [...peptide.vialSizes].sort((a, b) => a - b)
     }
 
-    // Check if it's a stack
     const stack = getStackById(peptideId)
-    if (stack) {
-      return { vialSizes: stack.vialSizes, item: stack }
+    if (stack && stack.vialSizes.length > 0) {
+      return [...stack.vialSizes].sort((a, b) => a - b)
     }
 
-    return { vialSizes: [], item: null }
+    return []
   }, [peptideId])
 
-  // Sort vial sizes for display
-  const sortedSizes = useMemo(() => {
-    return [...vialSizes].sort((a, b) => a - b)
-  }, [vialSizes])
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value
+    setInputValue(raw)
 
-  // No peptide selected or custom peptide
-  if (!peptideId || peptideId === 'custom' || sortedSizes.length === 0) {
-    return (
-      <div className={cn("space-y-2", className)}>
-        <label className="block text-sm font-medium text-muted-foreground">
-          Vial Size
-        </label>
-        <input
-          type="text"
-          placeholder="e.g., 5mg, 10mg"
-          disabled={disabled || !peptideId}
-          className={cn(
-            "w-full rounded-lg border border-border bg-muted px-3 py-2.5 text-sm",
-            "focus:border-primary focus:ring-1 focus:ring-primary",
-            "disabled:opacity-50 disabled:cursor-not-allowed"
-          )}
-          value={value ? `${value}mg` : ''}
-          onChange={(e) => {
-            const num = parseFloat(e.target.value.replace(/[^0-9.]/g, ''))
-            onChange(isNaN(num) ? null : num)
-          }}
-        />
-        {!peptideId && (
-          <p className="text-xs text-muted-foreground">
-            Select a peptide first
-          </p>
-        )}
-      </div>
-    )
+    // Parse the number, stripping any non-numeric chars except decimal
+    const num = parseFloat(raw.replace(/[^0-9.]/g, ''))
+    onChange(isNaN(num) || num <= 0 ? null : num)
   }
 
-  // Dropdown mode when peptide has predefined vial sizes
+  const handleQuickSelect = (size: number) => {
+    setInputValue(String(size))
+    onChange(size)
+  }
+
   return (
     <div className={cn("space-y-2", className)}>
       <label className="block text-sm font-medium">
-        Vial Size
+        Vial Size (mg)
       </label>
 
-      {/* Button group for few options */}
-      {sortedSizes.length <= 6 ? (
-        <div className="flex flex-wrap gap-2">
-          {sortedSizes.map((size) => (
-            <button
-              key={size}
-              type="button"
-              disabled={disabled}
-              onClick={() => onChange(size)}
-              className={cn(
-                "px-3 py-2 text-sm rounded-lg border transition-colors font-mono",
-                value === size
-                  ? "border-primary bg-primary/10 text-primary"
-                  : "border-border hover:bg-muted",
-                "disabled:opacity-50 disabled:cursor-not-allowed"
-              )}
-            >
-              {formatVialSize(size)}
-            </button>
-          ))}
-        </div>
-      ) : (
-        // Dropdown for many options
-        <select
-          value={value ?? ''}
-          onChange={(e) => onChange(e.target.value ? parseFloat(e.target.value) : null)}
-          disabled={disabled}
+      <div className="flex gap-2">
+        <input
+          type="text"
+          inputMode="decimal"
+          placeholder="Enter vial size"
+          disabled={disabled || !peptideId}
           className={cn(
-            "w-full rounded-lg border border-border bg-muted px-3 py-2.5 text-sm",
+            "flex-1 rounded-lg border border-border bg-muted px-3 py-2.5 text-sm font-mono",
             "focus:border-primary focus:ring-1 focus:ring-primary",
             "disabled:opacity-50 disabled:cursor-not-allowed"
           )}
-        >
-          <option value="">Select vial size...</option>
-          {sortedSizes.map((size) => (
-            <option key={size} value={size}>
-              {formatVialSize(size)}
-            </option>
-          ))}
-        </select>
+          value={inputValue}
+          onChange={handleInputChange}
+        />
+        <span className="flex items-center text-sm text-muted-foreground">mg</span>
+      </div>
+
+      {/* Quick select buttons for common sizes */}
+      {peptideId && commonSizes.length > 0 && (
+        <div className="space-y-1">
+          <p className="text-xs text-muted-foreground">Common sizes (click to use):</p>
+          <div className="flex flex-wrap gap-1.5">
+            {commonSizes.map((size) => (
+              <button
+                key={size}
+                type="button"
+                disabled={disabled}
+                onClick={() => handleQuickSelect(size)}
+                className={cn(
+                  "px-2 py-1 text-xs rounded-md border transition-colors font-mono",
+                  value === size
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-border hover:bg-muted text-muted-foreground",
+                  "disabled:opacity-50 disabled:cursor-not-allowed"
+                )}
+              >
+                {size}mg
+              </button>
+            ))}
+          </div>
+        </div>
       )}
 
-      {/* Info about selected item */}
-      {item && 'totalStrength' in item && item.totalStrength && (
+      {!peptideId && (
         <p className="text-xs text-muted-foreground">
-          Stack total strength: {item.totalStrength}mg
+          Select a peptide first
         </p>
       )}
     </div>
@@ -143,67 +125,35 @@ export function VialSizeSelectorInline({
   className,
   disabled = false,
 }: VialSizeSelectorProps) {
-  const { vialSizes } = useMemo(() => {
-    if (!peptideId || peptideId === 'custom') {
-      return { vialSizes: [] }
-    }
+  const [inputValue, setInputValue] = useState(value ? String(value) : '')
 
-    const peptide = getPeptideById(peptideId)
-    if (peptide) {
-      return { vialSizes: peptide.vialSizes }
-    }
+  useEffect(() => {
+    setInputValue(value ? String(value) : '')
+  }, [value])
 
-    const stack = getStackById(peptideId)
-    if (stack) {
-      return { vialSizes: stack.vialSizes }
-    }
-
-    return { vialSizes: [] }
-  }, [peptideId])
-
-  const sortedSizes = useMemo(() => {
-    return [...vialSizes].sort((a, b) => a - b)
-  }, [vialSizes])
-
-  if (!peptideId || peptideId === 'custom' || sortedSizes.length === 0) {
-    return (
-      <input
-        type="text"
-        placeholder="Vial size"
-        disabled={disabled || !peptideId}
-        className={cn(
-          "w-24 rounded-lg border border-border bg-muted px-3 py-2 text-sm font-mono",
-          "focus:border-primary focus:ring-1 focus:ring-primary",
-          "disabled:opacity-50 disabled:cursor-not-allowed",
-          className
-        )}
-        value={value ? `${value}` : ''}
-        onChange={(e) => {
-          const num = parseFloat(e.target.value.replace(/[^0-9.]/g, ''))
-          onChange(isNaN(num) ? null : num)
-        }}
-      />
-    )
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value
+    setInputValue(raw)
+    const num = parseFloat(raw.replace(/[^0-9.]/g, ''))
+    onChange(isNaN(num) || num <= 0 ? null : num)
   }
 
   return (
-    <select
-      value={value ?? ''}
-      onChange={(e) => onChange(e.target.value ? parseFloat(e.target.value) : null)}
-      disabled={disabled}
-      className={cn(
-        "w-28 rounded-lg border border-border bg-muted px-2 py-2 text-sm font-mono",
-        "focus:border-primary focus:ring-1 focus:ring-primary",
-        "disabled:opacity-50 disabled:cursor-not-allowed",
-        className
-      )}
-    >
-      <option value="">Size...</option>
-      {sortedSizes.map((size) => (
-        <option key={size} value={size}>
-          {formatVialSize(size)}
-        </option>
-      ))}
-    </select>
+    <div className={cn("flex items-center gap-1", className)}>
+      <input
+        type="text"
+        inputMode="decimal"
+        placeholder="Size"
+        disabled={disabled || !peptideId}
+        className={cn(
+          "w-20 rounded-lg border border-border bg-muted px-2 py-2 text-sm font-mono",
+          "focus:border-primary focus:ring-1 focus:ring-primary",
+          "disabled:opacity-50 disabled:cursor-not-allowed"
+        )}
+        value={inputValue}
+        onChange={handleInputChange}
+      />
+      <span className="text-xs text-muted-foreground">mg</span>
+    </div>
   )
 }
