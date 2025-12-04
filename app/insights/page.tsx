@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { AppSidebar } from "@/components/app-sidebar"
 import { MobileNav } from "@/components/mobile-nav"
 import { InsightCard, InsightCardSkeleton } from "@/components/insight-card"
@@ -10,17 +10,54 @@ import { InsightsEmptyState } from "@/components/insights-empty-state"
 import { InsightsChat } from "@/components/insights-chat"
 import { Sparkles } from "lucide-react"
 import type { WeeklyInsights, InsightsState } from "@/lib/types"
+import { useProtocolsSync } from "@/hooks/use-protocols-sync"
+import { useDoseLogsSync } from "@/hooks/use-dose-logs-sync"
 
 export default function InsightsPage() {
   const [state, setState] = useState<InsightsState>('loading')
   const [insights, setInsights] = useState<WeeklyInsights | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [missingDetails, setMissingDetails] = useState<string | null>(null)
+  const [syncStatus, setSyncStatus] = useState<string | null>(null)
 
-  // Fetch existing insights on mount
+  const { syncFromLocalStorage: syncProtocols } = useProtocolsSync()
+  const { syncFromLocalStorage: syncDoseLogs } = useDoseLogsSync()
+  const hasSyncedRef = useRef(false)
+
+  // Sync localStorage data to Supabase so AI features can access it
+  const syncDataToSupabase = useCallback(async () => {
+    try {
+      // Sync protocols and dose logs in parallel
+      const [protocolResult, doseLogResult] = await Promise.all([
+        syncProtocols(),
+        syncDoseLogs(),
+      ])
+
+      // Log sync results for debugging
+      if (protocolResult?.synced || doseLogResult?.synced) {
+        console.log('Data synced:', {
+          protocols: protocolResult?.synced || 0,
+          doseLogs: doseLogResult?.synced || 0,
+        })
+      }
+    } catch (err) {
+      console.error('Error syncing data:', err)
+      // Don't block the page load if sync fails
+    }
+  }, [syncProtocols, syncDoseLogs])
+
+  // Sync data and fetch existing insights on mount
   useEffect(() => {
-    fetchInsights()
-  }, [])
+    const initializeData = async () => {
+      // Only sync once per page load
+      if (!hasSyncedRef.current) {
+        hasSyncedRef.current = true
+        await syncDataToSupabase()
+      }
+      fetchInsights()
+    }
+    initializeData()
+  }, [syncDataToSupabase])
 
   const fetchInsights = async () => {
     setState('loading')
@@ -56,8 +93,13 @@ export default function InsightsPage() {
   const handleGenerate = useCallback(async () => {
     setState('generating')
     setError(null)
+    setSyncStatus('Syncing your data...')
 
     try {
+      // Always sync before generating to ensure latest data is available
+      await syncDataToSupabase()
+      setSyncStatus(null)
+
       const response = await fetch('/api/insights/generate', {
         method: 'POST',
       })
@@ -116,8 +158,9 @@ export default function InsightsPage() {
       console.error('Error generating insights:', err)
       setError(err instanceof Error ? err.message : 'Unknown error')
       setState('error')
+      setSyncStatus(null)
     }
-  }, [])
+  }, [syncDataToSupabase])
 
   return (
     <div className="min-h-screen">
@@ -161,9 +204,14 @@ export default function InsightsPage() {
                     <div className="w-16 h-16 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
                     <Sparkles className="absolute inset-0 m-auto h-6 w-6 text-primary" />
                   </div>
-                  <h3 className="font-medium mb-2">Analyzing your data...</h3>
+                  <h3 className="font-medium mb-2">
+                    {syncStatus || 'Analyzing your data...'}
+                  </h3>
                   <p className="text-sm text-muted-foreground max-w-sm">
-                    Our AI is examining your protocols, health metrics, and looking for meaningful patterns.
+                    {syncStatus
+                      ? 'Preparing your protocols and dose logs for analysis...'
+                      : 'Our AI is examining your protocols, health metrics, and looking for meaningful patterns.'
+                    }
                   </p>
                 </div>
               )}
