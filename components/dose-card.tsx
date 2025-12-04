@@ -73,11 +73,15 @@ export function DoseCard({
             />
             {showDate && (
               <span className="text-xs text-muted-foreground">
-                {new Date(dose.scheduledDate).toLocaleDateString('en-US', {
-                  weekday: 'short',
-                  month: 'short',
-                  day: 'numeric',
-                })}
+                {(() => {
+                  const [y, m, d] = dose.scheduledDate.split('-').map(Number)
+                  const date = new Date(y, (m || 1) - 1, d || 1)
+                  return date.toLocaleDateString('en-US', {
+                    weekday: 'short',
+                    month: 'short',
+                    day: 'numeric',
+                  })
+                })()}
               </span>
             )}
             {dose.scheduledTime && (

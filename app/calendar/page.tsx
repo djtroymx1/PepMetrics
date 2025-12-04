@@ -29,6 +29,12 @@ function formatDateKey(date: Date): string {
   return `${y}-${m}-${d}`
 }
 
+// Parse YYYY-MM-DD into a local Date (avoids UTC offset shifting the display)
+function parseDateKey(key: string): Date {
+  const [y, m, d] = key.split('-').map(Number)
+  return new Date(y, (m || 1) - 1, d || 1)
+}
+
 export default function CalendarPage() {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [protocols, setProtocols] = useState<Protocol[]>([])
@@ -169,7 +175,7 @@ export default function CalendarPage() {
     ? calendarDays.find(d => d.dateStr === selectedDate)?.doses || []
     : []
 
-  const selectedDateObj = selectedDate ? new Date(selectedDate) : null
+  const selectedDateObj = selectedDate ? parseDateKey(selectedDate) : null
   const selectedDateFormatted = selectedDateObj
     ? selectedDateObj.toLocaleDateString("en-US", { weekday: 'long', month: 'long', day: 'numeric' })
     : ''
