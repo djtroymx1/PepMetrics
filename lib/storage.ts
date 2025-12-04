@@ -1,5 +1,16 @@
 import type { Protocol, DoseLog } from './types'
 
+// Normalize a date string into local YYYY-MM-DD (avoids UTC/day shifts)
+function normalizeDateKey(value: string | undefined): string | undefined {
+  if (!value) return value
+  const [y, m, d] = value.split('-').map(Number)
+  const date = new Date(y || 0, (m || 1) - 1, d || 1)
+  const yy = date.getFullYear()
+  const mm = String(date.getMonth() + 1).padStart(2, '0')
+  const dd = String(date.getDate()).padStart(2, '0')
+  return `${yy}-${mm}-${dd}`
+}
+
 const STORAGE_KEYS = {
   PROTOCOLS: 'pepmetrics_protocols',
   DOSE_LOGS: 'pepmetrics_dose_logs',
@@ -36,6 +47,8 @@ export function addProtocol(protocol: Omit<Protocol, 'id' | 'createdAt' | 'updat
   const protocols = getProtocols()
   const newProtocol: Protocol = {
     ...protocol,
+    startDate: normalizeDateKey(protocol.startDate) || protocol.startDate,
+    cycleStartDate: normalizeDateKey(protocol.cycleStartDate) || protocol.cycleStartDate,
     id: generateId(),
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -50,9 +63,15 @@ export function updateProtocol(id: string, updates: Partial<Protocol>): Protocol
   const index = protocols.findIndex(p => p.id === id)
   if (index === -1) return null
 
+  const normalizedUpdates: Partial<Protocol> = {
+    ...updates,
+    startDate: normalizeDateKey(updates.startDate) || updates.startDate,
+    cycleStartDate: normalizeDateKey(updates.cycleStartDate) || updates.cycleStartDate,
+  }
+
   protocols[index] = {
     ...protocols[index],
-    ...updates,
+    ...normalizedUpdates,
     updatedAt: new Date().toISOString(),
   }
   saveProtocols(protocols)
