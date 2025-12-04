@@ -3,7 +3,9 @@
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer, Tooltip, Legend } from "recharts"
 import { Activity } from "lucide-react"
 
-const activityData = [
+type ActivityDatum = { date: string; steps: number; activeMinutes: number; calories: number }
+
+const fallbackActivityData: ActivityDatum[] = [
   { date: "Mon", steps: 7200, activeMinutes: 35, calories: 2150 },
   { date: "Tue", steps: 8900, activeMinutes: 52, calories: 2480 },
   { date: "Wed", steps: 6100, activeMinutes: 28, calories: 1920 },
@@ -13,7 +15,15 @@ const activityData = [
   { date: "Sun", steps: 8200, activeMinutes: 45, calories: 2420 },
 ]
 
-export function ActivityChart() {
+interface ActivityChartProps {
+  data?: ActivityDatum[]
+}
+
+export function ActivityChart({ data }: ActivityChartProps) {
+  const chartData = data && data.length > 0 ? data : fallbackActivityData
+  const avgSteps = Math.round(chartData.reduce((sum, d) => sum + d.steps, 0) / chartData.length)
+  const avgActive = Math.round(chartData.reduce((sum, d) => sum + d.activeMinutes, 0) / chartData.length)
+
   return (
     <div className="rounded-lg border border-border bg-surface p-6">
       <div className="flex items-center justify-between mb-6">
@@ -26,18 +36,18 @@ export function ActivityChart() {
         </div>
         <div className="flex gap-6">
           <div className="text-right">
-            <p className="text-lg font-semibold tabular-nums">8,414</p>
+            <p className="text-lg font-semibold tabular-nums">{avgSteps.toLocaleString()}</p>
             <p className="text-xs text-text-muted">Avg Steps</p>
           </div>
           <div className="text-right">
-            <p className="text-lg font-semibold tabular-nums">48min</p>
+            <p className="text-lg font-semibold tabular-nums">{avgActive}min</p>
             <p className="text-xs text-text-muted">Avg Active</p>
           </div>
         </div>
       </div>
 
       <ResponsiveContainer width="100%" height={300}>
-        <BarChart data={activityData}>
+        <BarChart data={chartData}>
           <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
           <XAxis dataKey="date" stroke="#71717a" style={{ fontSize: "12px" }} />
           <YAxis

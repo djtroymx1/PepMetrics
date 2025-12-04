@@ -151,3 +151,263 @@ export const FREQUENCY_TYPE_LABELS: Record<FrequencyType, string> = {
   'every-x-days': 'Every X Days',
   'cycling': 'Cycling (On/Off)',
 }
+
+// ============================================
+// AI INSIGHTS TYPES
+// ============================================
+
+export type InsightType = 'correlation' | 'timing' | 'compliance' | 'anomaly' | 'trend'
+export type InsightSeverity = 'info' | 'notable' | 'alert'
+export type InsightConfidence = 'possible' | 'likely' | 'strong'
+
+export interface Insight {
+  type: InsightType
+  severity: InsightSeverity
+  title: string
+  body: string
+  metrics: string[]
+  confidence: InsightConfidence
+  data_points: Record<string, number | string>
+}
+
+export interface WeeklyInsightsResponse {
+  insights: Insight[]
+  weekly_summary: string
+  recommendations: string[]
+}
+
+export interface WeeklyInsights {
+  id: string
+  userId: string
+  weekStart: string
+  weekEnd: string
+  metricsSummary: Record<string, unknown>
+  protocolSummary: Record<string, unknown>
+  correlationData: CorrelationResult[]
+  insights: Insight[]
+  weeklySummary: string
+  recommendations: string[]
+  generatedAt: string
+  modelVersion: string
+  inputTokens?: number
+  outputTokens?: number
+}
+
+// ============================================
+// DATA ANALYSIS TYPES
+// ============================================
+
+export interface UserAnalysisData {
+  activeProtocols: ProtocolSummary[]
+  protocolChanges: ProtocolChange[]
+  doseLogs: DoseLogEntry[]
+  garminData: GarminDailySummary[]
+  baselineMetrics: BaselineMetrics
+  correlations: CorrelationResult[]
+}
+
+export interface ProtocolSummary {
+  id: string
+  name: string
+  peptides: string[]
+  startDate: string
+  frequency: string
+  status: string
+}
+
+export interface ProtocolChange {
+  date: string
+  type: 'started' | 'stopped' | 'paused' | 'resumed' | 'dose_adjusted'
+  protocolName: string
+  details?: string
+}
+
+export interface DoseLogEntry {
+  date: string
+  peptideName: string
+  dose: string
+  status: 'taken' | 'skipped' | 'pending' | 'overdue'
+  takenAt?: string
+  scheduledFor: string
+  notes?: string
+}
+
+export interface GarminDailySummary {
+  date: string
+  sleep_score?: number
+  sleep_duration_hours?: number
+  deep_sleep_hours?: number
+  light_sleep_hours?: number
+  rem_sleep_hours?: number
+  awake_hours?: number
+  hrv_avg?: number
+  resting_hr?: number
+  stress_avg?: number
+  body_battery_high?: number
+  body_battery_low?: number
+  steps?: number
+  active_minutes?: number
+  calories_total?: number
+  calories_active?: number
+  distance_meters?: number
+}
+
+export interface BaselineMetrics {
+  hrv_avg: number
+  hrv_std: number
+  resting_hr_avg: number
+  sleep_score_avg: number
+  deep_sleep_avg: number
+  stress_avg: number
+  body_battery_avg: number
+  steps_avg: number
+}
+
+export interface CorrelationResult {
+  metric1: string
+  metric2: string
+  correlation: number
+  lag_days: number
+  significance: 'weak' | 'moderate' | 'strong'
+  direction?: 'positive' | 'negative'
+}
+
+// ============================================
+// GARMIN IMPORT TYPES
+// ============================================
+
+export interface GarminCSVParseResult {
+  success: boolean
+  activities: ParsedGarminActivity[]
+  errors: ParseError[]
+  summary: {
+    totalRows: number
+    validRows: number
+    invalidRows: number
+    dateRange: { start: Date; end: Date } | null
+  }
+}
+
+export interface ParsedGarminActivity {
+  activity_type: string
+  activity_name: string | null
+  start_time: string
+  duration_seconds: number | null
+  distance_meters: number | null
+  calories: number | null
+  avg_heart_rate: number | null
+  max_heart_rate: number | null
+  avg_speed_mps: number | null
+  elevation_gain_meters: number | null
+  raw_data: Record<string, string>
+}
+
+export interface ParseError {
+  row: number
+  field?: string
+  message: string
+}
+
+export interface GarminImportResult {
+  success: boolean
+  recordsImported: number
+  recordsSkipped: number
+  recordsUpdated: number
+  dateRange: { start: string; end: string } | null
+  errors: string[]
+}
+
+// ============================================
+// CHAT TYPES
+// ============================================
+
+export interface ChatMessage {
+  id: string
+  role: 'user' | 'assistant'
+  content: string
+  timestamp: string
+}
+
+export interface ChatContext {
+  activeProtocols: ProtocolSummary[]
+  recentDoses: DoseLogEntry[]
+  garminSummary: GarminDailySummary[]
+  latestInsights?: WeeklyInsights
+}
+
+// ============================================
+// UI STATE TYPES
+// ============================================
+
+export type InsightsState = 'loading' | 'generating' | 'ready' | 'empty' | 'no-data' | 'error'
+
+export interface InsightsPageState {
+  state: InsightsState
+  insights: WeeklyInsights | null
+  error: string | null
+}
+
+// ============================================
+// INSIGHT TYPE DISPLAY INFO
+// ============================================
+
+export const INSIGHT_TYPE_INFO: Record<InsightType, { label: string; icon: string; color: string }> = {
+  correlation: {
+    label: 'Correlation',
+    icon: 'TrendingUp',
+    color: 'text-blue-500',
+  },
+  timing: {
+    label: 'Timing Optimization',
+    icon: 'Clock',
+    color: 'text-purple-500',
+  },
+  compliance: {
+    label: 'Compliance',
+    icon: 'CheckCircle',
+    color: 'text-green-500',
+  },
+  anomaly: {
+    label: 'Anomaly Alert',
+    icon: 'AlertTriangle',
+    color: 'text-amber-500',
+  },
+  trend: {
+    label: 'Trend',
+    icon: 'Activity',
+    color: 'text-cyan-500',
+  },
+}
+
+export const INSIGHT_SEVERITY_INFO: Record<InsightSeverity, { label: string; bgColor: string; textColor: string }> = {
+  info: {
+    label: 'Info',
+    bgColor: 'bg-blue-500/10',
+    textColor: 'text-blue-500',
+  },
+  notable: {
+    label: 'Notable',
+    bgColor: 'bg-amber-500/10',
+    textColor: 'text-amber-500',
+  },
+  alert: {
+    label: 'Alert',
+    bgColor: 'bg-red-500/10',
+    textColor: 'text-red-500',
+  },
+}
+
+export const INSIGHT_CONFIDENCE_INFO: Record<InsightConfidence, { label: string; description: string }> = {
+  possible: {
+    label: 'Possible',
+    description: 'Early pattern detected, more data needed',
+  },
+  likely: {
+    label: 'Likely',
+    description: 'Consistent pattern observed',
+  },
+  strong: {
+    label: 'Strong',
+    description: 'High confidence correlation',
+  },
+}

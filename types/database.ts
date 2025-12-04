@@ -563,6 +563,162 @@ export type Database = {
           raw_data?: Json
         }
       }
+      ai_insights: {
+        Row: {
+          id: string
+          user_id: string
+          week_start: string
+          week_end: string
+          metrics_summary: Json
+          protocol_summary: Json
+          correlation_data: Json
+          insights: Json
+          weekly_summary: string | null
+          recommendations: Json
+          generated_at: string
+          model_version: string
+          input_tokens: number | null
+          output_tokens: number | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          week_start: string
+          week_end: string
+          metrics_summary?: Json
+          protocol_summary?: Json
+          correlation_data?: Json
+          insights?: Json
+          weekly_summary?: string | null
+          recommendations?: Json
+          generated_at?: string
+          model_version: string
+          input_tokens?: number | null
+          output_tokens?: number | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          week_start?: string
+          week_end?: string
+          metrics_summary?: Json
+          protocol_summary?: Json
+          correlation_data?: Json
+          insights?: Json
+          weekly_summary?: string | null
+          recommendations?: Json
+          model_version?: string
+          input_tokens?: number | null
+          output_tokens?: number | null
+        }
+      }
+      garmin_imports: {
+        Row: {
+          id: string
+          user_id: string
+          import_date: string
+          file_name: string | null
+          file_type: 'activity_csv' | 'full_export' | null
+          records_imported: number
+          records_skipped: number
+          records_updated: number
+          date_range_start: string | null
+          date_range_end: string | null
+          status: 'processing' | 'completed' | 'failed'
+          error_message: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          import_date?: string
+          file_name?: string | null
+          file_type?: 'activity_csv' | 'full_export' | null
+          records_imported?: number
+          records_skipped?: number
+          records_updated?: number
+          date_range_start?: string | null
+          date_range_end?: string | null
+          status?: 'processing' | 'completed' | 'failed'
+          error_message?: string | null
+          created_at?: string
+        }
+        Update: {
+          file_name?: string | null
+          file_type?: 'activity_csv' | 'full_export' | null
+          records_imported?: number
+          records_skipped?: number
+          records_updated?: number
+          date_range_start?: string | null
+          date_range_end?: string | null
+          status?: 'processing' | 'completed' | 'failed'
+          error_message?: string | null
+        }
+      }
+      dose_logs: {
+        Row: {
+          id: string
+          user_id: string
+          protocol_id: string
+          peptide_name: string
+          dose: string
+          dose_number: number
+          scheduled_for: string
+          taken_at: string | null
+          status: 'pending' | 'taken' | 'skipped' | 'overdue'
+          notes: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          protocol_id: string
+          peptide_name: string
+          dose: string
+          dose_number?: number
+          scheduled_for: string
+          taken_at?: string | null
+          status: 'pending' | 'taken' | 'skipped' | 'overdue'
+          notes?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          protocol_id?: string
+          peptide_name?: string
+          dose?: string
+          dose_number?: number
+          scheduled_for?: string
+          taken_at?: string | null
+          status?: 'pending' | 'taken' | 'skipped' | 'overdue'
+          notes?: string | null
+        }
+      }
+      insight_conversations: {
+        Row: {
+          id: string
+          user_id: string
+          title: string | null
+          messages: Json
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          title?: string | null
+          messages?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          title?: string | null
+          messages?: Json
+        }
+      }
     }
     Views: {
       [_ in never]: never
@@ -620,3 +776,17 @@ export type ProgressPhotoUpdate = Database['public']['Tables']['progress_photos'
 export type CheckInUpdate = Database['public']['Tables']['check_ins']['Update']
 export type GarminDataUpdate = Database['public']['Tables']['garmin_data']['Update']
 export type GarminActivityUpdate = Database['public']['Tables']['garmin_activities']['Update']
+export type AIInsightsUpdate = Database['public']['Tables']['ai_insights']['Update']
+export type GarminImportsUpdate = Database['public']['Tables']['garmin_imports']['Update']
+export type DoseLogsUpdate = Database['public']['Tables']['dose_logs']['Update']
+export type InsightConversationsUpdate = Database['public']['Tables']['insight_conversations']['Update']
+
+// AI Insights types
+export type AIInsights = Database['public']['Tables']['ai_insights']['Row']
+export type AIInsightsInsert = Database['public']['Tables']['ai_insights']['Insert']
+export type GarminImports = Database['public']['Tables']['garmin_imports']['Row']
+export type GarminImportsInsert = Database['public']['Tables']['garmin_imports']['Insert']
+export type DoseLogs = Database['public']['Tables']['dose_logs']['Row']
+export type DoseLogsInsert = Database['public']['Tables']['dose_logs']['Insert']
+export type InsightConversations = Database['public']['Tables']['insight_conversations']['Row']
+export type InsightConversationsInsert = Database['public']['Tables']['insight_conversations']['Insert']

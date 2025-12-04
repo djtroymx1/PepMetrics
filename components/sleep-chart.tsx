@@ -3,7 +3,9 @@
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts"
 import { Moon } from "lucide-react"
 
-const sleepData = [
+type SleepDatum = { date: string; deep: number; light: number; rem: number; awake: number }
+
+const fallbackSleepData: SleepDatum[] = [
   { date: "Mon", deep: 1.2, light: 4.3, rem: 1.8, awake: 0.3 },
   { date: "Tue", deep: 1.5, light: 4.1, rem: 2.0, awake: 0.2 },
   { date: "Wed", deep: 1.3, light: 3.8, rem: 1.6, awake: 0.5 },
@@ -13,7 +15,18 @@ const sleepData = [
   { date: "Sun", deep: 1.6, light: 4.6, rem: 2.1, awake: 0.2 },
 ]
 
-export function SleepChart() {
+interface SleepChartProps {
+  data?: SleepDatum[]
+  averageHours?: number
+}
+
+export function SleepChart({ data, averageHours }: SleepChartProps) {
+  const chartData = data && data.length > 0 ? data : fallbackSleepData
+  const avg =
+    typeof averageHours === "number"
+      ? averageHours
+      : chartData.reduce((sum, d) => sum + d.deep + d.light + d.rem + d.awake, 0) / chartData.length || 0
+
   return (
     <div className="rounded-lg border border-border bg-surface p-6">
       <div className="flex items-center justify-between mb-6">
@@ -25,13 +38,13 @@ export function SleepChart() {
           <p className="text-sm text-text-secondary">Last 7 days breakdown</p>
         </div>
         <div className="text-right">
-          <p className="text-2xl font-semibold tabular-nums">7.8h</p>
+          <p className="text-2xl font-semibold tabular-nums">{avg.toFixed(1)}h</p>
           <p className="text-xs text-text-muted">Avg per night</p>
         </div>
       </div>
 
       <ResponsiveContainer width="100%" height={280}>
-        <AreaChart data={sleepData}>
+        <AreaChart data={chartData}>
           <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
           <XAxis dataKey="date" stroke="#71717a" style={{ fontSize: "12px" }} />
           <YAxis

@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react"
 import { AppSidebar } from "@/components/app-sidebar"
 import { MobileNav } from "@/components/mobile-nav"
 import { FastingTimer } from "@/components/fasting-timer"
+import { WeeklyInsightsWidget } from "@/components/weekly-insights-widget"
 import { CircularGauge } from "@/components/circular-gauge"
 import { MetricCard } from "@/components/metric-card"
 import { DoseCard, DoseInline, NoDoses } from "@/components/dose-card"
@@ -141,7 +142,7 @@ export default function DashboardPage() {
               )}
             </div>
 
-            {/* Fasting Timer - Right Column */}
+            {/* Right Column - Timer, Compliance, Insights */}
             <div className="space-y-6">
               <FastingTimer
                 fastingStartTime={fastingStart || new Date(Date.now() - 2 * 60 * 60 * 1000)}
@@ -167,6 +168,9 @@ export default function DashboardPage() {
                   />
                 </div>
               </div>
+
+              {/* AI Insights Widget */}
+              <WeeklyInsightsWidget />
             </div>
           </div>
 

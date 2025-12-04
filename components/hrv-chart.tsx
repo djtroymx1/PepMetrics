@@ -3,7 +3,9 @@
 import { Line, LineChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts"
 import { Heart } from "lucide-react"
 
-const hrvData = [
+type HRVDatum = { date: string; hrv: number; baseline?: number }
+
+const fallbackHrvData: HRVDatum[] = [
   { date: "Mon", hrv: 58, baseline: 60 },
   { date: "Tue", hrv: 62, baseline: 60 },
   { date: "Wed", hrv: 55, baseline: 60 },
@@ -13,7 +15,17 @@ const hrvData = [
   { date: "Sun", hrv: 62, baseline: 60 },
 ]
 
-export function HRVChart() {
+interface HRVChartProps {
+  data?: HRVDatum[]
+}
+
+export function HRVChart({ data }: HRVChartProps) {
+  const chartData = data && data.length > 0 ? data : fallbackHrvData
+  const avg = chartData.reduce((sum, d) => sum + d.hrv, 0) / chartData.length || 0
+  const baseline =
+    chartData.reduce((sum, d) => sum + (d.baseline ?? avg), 0) / chartData.length || avg
+  const delta = baseline ? ((avg - baseline) / baseline) * 100 : 0
+
   return (
     <div className="rounded-lg border border-border bg-surface p-6">
       <div className="flex items-center justify-between mb-6">
@@ -25,13 +37,16 @@ export function HRVChart() {
           <p className="text-sm text-text-secondary">7-day trend with baseline</p>
         </div>
         <div className="text-right">
-          <p className="text-2xl font-semibold tabular-nums">62ms</p>
-          <p className="text-xs text-success">+8% vs baseline</p>
+          <p className="text-2xl font-semibold tabular-nums">{Math.round(avg)}ms</p>
+          <p className={`text-xs ${delta >= 0 ? "text-success" : "text-error"}`}>
+            {delta >= 0 ? "+" : ""}
+            {Math.round(delta)}% vs baseline
+          </p>
         </div>
       </div>
 
       <ResponsiveContainer width="100%" height={280}>
-        <LineChart data={hrvData}>
+        <LineChart data={chartData}>
           <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
           <XAxis dataKey="date" stroke="#71717a" style={{ fontSize: "12px" }} />
           <YAxis
