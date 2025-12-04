@@ -10,7 +10,7 @@ import {
 } from '@/lib/parsers'
 import type { GarminImportResult, ParsedGarminActivity, GarminDailySummary } from '@/lib/types'
 
-const MAX_FILE_SIZE = 50 * 1024 * 1024 // 50MB for ZIP files
+const MAX_FILE_SIZE = 200 * 1024 * 1024 // 200MB for ZIP files
 
 export async function POST(request: NextRequest) {
   try {
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
     // Validate file size
     if (file.size > MAX_FILE_SIZE) {
       return NextResponse.json(
-        { error: 'File size exceeds 5MB limit' },
+        { error: 'File size exceeds 200MB limit' },
         { status: 400 }
       )
     }

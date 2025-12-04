@@ -77,10 +77,10 @@ export function useGarminImport(): UseGarminImportReturn {
         throw new Error('Please upload a ZIP (recommended), CSV, or JSON file from Garmin')
       }
 
-      // Validate file size (50MB for ZIP, 5MB for others)
-      const maxSize = isZip ? 50 * 1024 * 1024 : 5 * 1024 * 1024
+      // Validate file size (200MB for ZIP, 5MB for others)
+      const maxSize = isZip ? 200 * 1024 * 1024 : 5 * 1024 * 1024
       if (file.size > maxSize) {
-        throw new Error(`File size exceeds ${isZip ? '50MB' : '5MB'} limit`)
+        throw new Error(`File size exceeds ${isZip ? '200MB' : '5MB'} limit`)
       }
 
       setUploadProgress(10)
