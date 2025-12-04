@@ -40,8 +40,9 @@ export async function POST() {
       : new Date(now)
     analysisEnd.setHours(0, 0, 0, 0)
 
+    // Pull a wider window (last 28 days) to avoid failing when the latest week has gaps
     const analysisStart = new Date(analysisEnd)
-    analysisStart.setDate(analysisEnd.getDate() - 6)
+    analysisStart.setDate(analysisEnd.getDate() - 27)
 
     const weekStartStr = analysisStart.toISOString().split('T')[0]
     const weekEndStr = analysisEnd.toISOString().split('T')[0]

@@ -79,21 +79,23 @@ async function fetchActiveProtocols(
     .from('protocols')
     .select('id, name, peptides, start_date, frequency, status')
     .eq('user_id', userId)
-    .eq('status', 'active')
 
   if (error) {
     console.error('Error fetching protocols:', error)
     return []
   }
 
-  return (data || []).map(protocol => ({
-    id: protocol.id,
-    name: protocol.name,
-    peptides: protocol.peptides || [],
-    startDate: protocol.start_date,
-    frequency: protocol.frequency,
-    status: protocol.status,
-  }))
+  // Treat anything not explicitly paused as active (handles case variants/nulls)
+  return (data || [])
+    .filter(protocol => (protocol.status || '').toLowerCase() !== 'paused')
+    .map(protocol => ({
+      id: protocol.id,
+      name: protocol.name,
+      peptides: protocol.peptides || [],
+      startDate: protocol.start_date,
+      frequency: protocol.frequency,
+      status: protocol.status,
+    }))
 }
 
 /**
