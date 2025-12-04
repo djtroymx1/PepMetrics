@@ -23,7 +23,11 @@ function addDays(date: Date, days: number): Date {
 
 // Helper to format date as ISO date string (YYYY-MM-DD)
 function toISODateString(date: Date): string {
-  return date.toISOString().split('T')[0]
+  const d = new Date(date.getFullYear(), date.getMonth(), date.getDate())
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
 }
 
 // Shared scheduler to decide if a protocol should dose on a specific date

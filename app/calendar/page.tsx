@@ -21,6 +21,14 @@ interface CalendarDay {
   doses: ScheduledDose[]
 }
 
+// Format a date into YYYY-MM-DD using local time (avoids UTC shift)
+function formatDateKey(date: Date): string {
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  const d = String(date.getDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
+}
+
 export default function CalendarPage() {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [protocols, setProtocols] = useState<Protocol[]>([])
@@ -41,7 +49,7 @@ export default function CalendarPage() {
   useEffect(() => {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
-    const todayStr = today.toISOString().split('T')[0]
+    const todayStr = formatDateKey(today)
 
     const firstDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
     const lastDay = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0)
@@ -62,7 +70,7 @@ export default function CalendarPage() {
     const prevMonthLastDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 0).getDate()
     for (let i = startingDayOfWeek - 1; i >= 0; i--) {
       const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, prevMonthLastDay - i)
-      const dateStr = date.toISOString().split('T')[0]
+      const dateStr = formatDateKey(date)
       days.push({
         date,
         dateStr,
@@ -77,7 +85,7 @@ export default function CalendarPage() {
     // Current month days
     for (let dayNum = 1; dayNum <= daysInMonth; dayNum++) {
       const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), dayNum)
-      const dateStr = date.toISOString().split('T')[0]
+      const dateStr = formatDateKey(date)
       days.push({
         date,
         dateStr,
@@ -93,7 +101,7 @@ export default function CalendarPage() {
     const remainingDays = 42 - days.length
     for (let dayNum = 1; dayNum <= remainingDays; dayNum++) {
       const date = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, dayNum)
-      const dateStr = date.toISOString().split('T')[0]
+      const dateStr = formatDateKey(date)
       days.push({
         date,
         dateStr,
