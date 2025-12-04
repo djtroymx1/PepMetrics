@@ -50,8 +50,10 @@ interface GarminSleepEntry {
   remSleepSeconds?: number
   awakeSleepSeconds?: number
   sleepScores?: {
-    overall?: { value: number }
-    qualityScore?: { value: number }
+    overallScore?: number  // Direct number, not nested under "overall.value"
+    qualityScore?: number
+    durationScore?: number
+    recoveryScore?: number
   }
   sleepStartTimestampGMT?: number
   sleepEndTimestampGMT?: number
@@ -118,13 +120,13 @@ interface GarminDailySummaryEntry {
 // Health status data structure (contains HRV, skin temp, respiration)
 interface GarminHealthStatusEntry {
   calendarDate: string
-  overallValues?: Array<{
-    metricType: string // 'HRV', 'HR', 'SPO2', 'SKIN_TEMP_C', 'RESPIRATION'
+  metrics?: Array<{  // Field is "metrics" not "overallValues"
+    type: string     // Field is "type" not "metricType" - 'HRV', 'HR', 'SPO2', 'SKIN_TEMP_C', 'RESPIRATION'
     value?: number
     status?: string
-    baselineLower?: number
-    baselineUpper?: number
-    percentRelativeToBaseline?: number
+    baselineLowerLimit?: number
+    baselineUpperLimit?: number
+    percentage?: number
   }>
 }
 
@@ -258,9 +260,23 @@ function mergeEntryData(
   switch (type) {
     case 'sleep': {
       const sleep = entry as GarminSleepEntry
+
+      // Calculate total duration from stages if sleepTimeSeconds is missing
       if (sleep.sleepTimeSeconds) {
         merged.sleep_duration_hours = sleep.sleepTimeSeconds / 3600
+      } else {
+        // Sum individual stages
+        const totalSeconds =
+          (sleep.deepSleepSeconds ?? 0) +
+          (sleep.lightSleepSeconds ?? 0) +
+          (sleep.remSleepSeconds ?? 0) +
+          (sleep.awakeSleepSeconds ?? 0)
+        if (totalSeconds > 0) {
+          merged.sleep_duration_hours = totalSeconds / 3600
+        }
       }
+
+      // Sleep stages
       if (sleep.deepSleepSeconds) {
         merged.deep_sleep_hours = sleep.deepSleepSeconds / 3600
       }
@@ -273,8 +289,10 @@ function mergeEntryData(
       if (sleep.awakeSleepSeconds) {
         merged.awake_hours = sleep.awakeSleepSeconds / 3600
       }
-      if (sleep.sleepScores?.overall?.value) {
-        merged.sleep_score = sleep.sleepScores.overall.value
+
+      // Sleep score is at overallScore, not overall.value
+      if (sleep.sleepScores?.overallScore !== undefined) {
+        merged.sleep_score = sleep.sleepScores.overallScore
       }
       break
     }
@@ -355,13 +373,13 @@ function mergeEntryData(
     }
 
     case 'health_status': {
-      // Health status data contains HRV, HR, skin temp, respiration in overallValues array
+      // Health status data contains HRV, HR, skin temp, respiration in "metrics" array
       const healthStatus = entry as GarminHealthStatusEntry
-      if (healthStatus.overallValues) {
-        for (const metric of healthStatus.overallValues) {
+      if (healthStatus.metrics) {
+        for (const metric of healthStatus.metrics) {
           if (metric.value === undefined) continue
 
-          switch (metric.metricType) {
+          switch (metric.type) {
             case 'HRV':
               // Only set HRV if not already set from dedicated HRV file
               if (merged.hrv_avg === undefined) {
