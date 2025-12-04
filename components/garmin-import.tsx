@@ -250,7 +250,7 @@ export function GarminImport({ onImportComplete }: GarminImportProps) {
           <CollapsibleContent className="pt-4">
             <div className="rounded-lg bg-muted/50 p-4 space-y-4 text-sm">
               <div>
-                <h4 className="font-medium mb-2">On Desktop (Recommended):</h4>
+                <h4 className="font-medium mb-2">On Desktop (Recommended) — Activity CSV:</h4>
                 <ol className="list-decimal list-inside space-y-1.5 text-muted-foreground">
                   <li>
                     Go to{' '}
@@ -288,6 +288,29 @@ export function GarminImport({ onImportComplete }: GarminImportProps) {
                     </span>
                   ))}
                 </div>
+              </div>
+
+              <div>
+                <h4 className="font-medium mb-2">Full Export (JSON) — adds Sleep, HRV, Stress, Body Battery:</h4>
+                <p className="text-muted-foreground mb-2">
+                  Use this if you want complete health metrics for AI insights (sleep stages/score, HRV, stress, Body Battery).
+                </p>
+                <ol className="list-decimal list-inside space-y-1.5 text-muted-foreground">
+                  <li>
+                    Go to{' '}
+                    <a
+                      href="https://www.garmin.com/account/datamanagement/exportdata"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline"
+                    >
+                      garmin.com/account/datamanagement/exportdata
+                    </a>
+                    {' '}and request your data export.
+                  </li>
+                  <li>Garmin emails you a ZIP link; download and unzip it.</li>
+                  <li>Upload the extracted JSON files here (sleep, HRV, stress, body battery, daily summaries).</li>
+                </ol>
               </div>
 
               <div className="pt-2 border-t border-border">
