@@ -292,6 +292,14 @@ export function getDosesForRange(
   const end = startOfDay(endDate)
   const today = startOfDay(new Date())
 
+  // Safety cap to avoid accidentally iterating massive ranges
+  const maxSpanDays = 366
+  const spanDays = Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
+  if (spanDays > maxSpanDays) {
+    console.warn('getDosesForRange: limiting span to', maxSpanDays, 'days')
+    end.setTime(start.getTime() + maxSpanDays * 24 * 60 * 60 * 1000)
+  }
+
   const scheduled: ScheduledDose[] = []
   for (
     let cursor = new Date(start);
