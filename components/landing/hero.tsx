@@ -49,12 +49,12 @@ export function Hero() {
 
         {/* App Preview */}
         <div className="relative mx-auto max-w-5xl mt-16">
-          <div className="aspect-[16/10] bg-zinc-900/50 rounded-xl border border-white/10 overflow-hidden shadow-2xl shadow-teal-500/10 relative group">
+          <div className="aspect-video bg-zinc-900/50 rounded-xl border border-white/10 overflow-hidden shadow-2xl shadow-teal-500/10 relative group">
             <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent z-10" />
             <img
-              src="/assets/landing/dashboard-polished.png"
-              alt="PepMetrics Dashboard"
-              className="w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-105"
+              src="/assets/landing/CTA.png"
+              alt="PepMetrics CTA Preview"
+              className="w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105"
             />
           </div>
         </div>
