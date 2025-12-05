@@ -13,13 +13,14 @@ export function CTASection() {
             Ready to see what&apos;s actually working?
           </h2>
           <p className="text-xl text-zinc-400 mb-10 max-w-2xl mx-auto">
-            Stop guessing. Start tracking. Join thousands of peptide users who finally have their protocols under control.
+            Stop guessing. Start tracking. Join thousands of peptide users who
+            finally have their protocols under control.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link href="/login">
               <Button
                 size="lg"
-                className="h-14 px-10 text-lg bg-teal-500 hover:bg-teal-400 text-black font-bold shadow-lg shadow-teal-500/20"
+                className="h-14 px-10 text-lg bg-teal-500 hover:bg-teal-400 text-black font-bold shadow-lg shadow-teal-500/20 animate-pulse-glow transition-all duration-300 hover:scale-105"
               >
                 Start Tracking Free <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
