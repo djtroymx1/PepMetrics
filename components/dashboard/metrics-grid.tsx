@@ -6,10 +6,17 @@ import { createClient } from "@/lib/supabase/client";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/components/providers/auth-provider";
 import { ArrowDown, ArrowUp, Moon, Activity, Scale } from "lucide-react";
+import Link from "next/link";
 
 type ChartData = {
   day: string;
   val: number;
+};
+
+type GarminRow = {
+  data_date: string;
+  sleep: { score?: number; total_hours?: number } | null;
+  hrv_avg: number | null;
 };
 
 export function MetricsGrid() {
@@ -19,16 +26,16 @@ export function MetricsGrid() {
   const [eightWeekChange, setEightWeekChange] = useState<number | null>(null);
   const [eightWeekPercent, setEightWeekPercent] = useState<number | null>(null);
 
-  // Placeholder for sleep/HRV
-  const sleepData = [
-    { day: "Mon", val: 75 },
-    { day: "Tue", val: 80 },
-    { day: "Wed", val: 82 },
-    { day: "Thu", val: 78 },
-    { day: "Fri", val: 85 },
-    { day: "Sat", val: 88 },
-    { day: "Sun", val: 82 },
-  ];
+  // Sleep state
+  const [sleepData, setSleepData] = useState<ChartData[]>([]);
+  const [lastSleepScore, setLastSleepScore] = useState<number | null>(null);
+  const [sleepDelta, setSleepDelta] = useState<number | null>(null);
+
+  // HRV state
+  const [hrvData, setHrvData] = useState<ChartData[]>([]);
+  const [lastHrv, setLastHrv] = useState<number | null>(null);
+  const [hrvBaseline, setHrvBaseline] = useState<number | null>(null);
+  const [hrvDeltaPercent, setHrvDeltaPercent] = useState<number | null>(null);
 
   useEffect(() => {
     async function loadMetrics() {
@@ -44,8 +51,6 @@ export function MetricsGrid() {
         .limit(60);
 
       if (weights && weights.length > 0) {
-        // Cast to unknown first if needed, but usually Supabase types infer correctly if generated.
-        // If not, we can assert the shape.
         const typedWeights = weights as {
           value: number;
           measured_at: string;
@@ -62,11 +67,65 @@ export function MetricsGrid() {
         const latest = weights[weights.length - 1].value;
         setCurrentWeight(latest);
 
-        // Calculate 8-week change (or oldest available)
         const oldest = weights[0].value;
         const change = latest - oldest;
         setEightWeekChange(Number(change.toFixed(1)));
         setEightWeekPercent(Number(((change / oldest) * 100).toFixed(1)));
+      }
+
+      // Fetch Garmin data for Sleep/HRV (last 14 days)
+      const { data: garminData } = await supabase
+        .from("garmin_data")
+        .select("data_date, sleep, hrv_avg")
+        .eq("user_id", user.id)
+        .order("data_date", { ascending: false })
+        .limit(14);
+
+      if (garminData && garminData.length > 0) {
+        const typedGarmin = (garminData as GarminRow[]).reverse();
+
+        // Sleep data
+        const sleepScores = typedGarmin
+          .filter((g) => g.sleep?.score != null)
+          .map((g) => ({
+            day: new Date(g.data_date + "T00:00:00").toLocaleDateString(
+              "en-US",
+              { weekday: "short" }
+            ),
+            val: g.sleep!.score!,
+          }));
+
+        if (sleepScores.length > 0) {
+          setSleepData(sleepScores.slice(-7));
+          setLastSleepScore(sleepScores[sleepScores.length - 1].val);
+          const avg =
+            sleepScores.reduce((sum, s) => sum + s.val, 0) / sleepScores.length;
+          setSleepDelta(
+            Math.round(sleepScores[sleepScores.length - 1].val - avg)
+          );
+        }
+
+        // HRV data
+        const hrvValues = typedGarmin
+          .filter((g) => g.hrv_avg != null)
+          .map((g) => ({
+            day: new Date(g.data_date + "T00:00:00").toLocaleDateString(
+              "en-US",
+              { weekday: "short" }
+            ),
+            val: g.hrv_avg!,
+          }));
+
+        if (hrvValues.length > 0) {
+          setHrvData(hrvValues.slice(-7));
+          setLastHrv(Math.round(hrvValues[hrvValues.length - 1].val));
+          const baseline =
+            hrvValues.reduce((sum, h) => sum + h.val, 0) / hrvValues.length;
+          setHrvBaseline(Math.round(baseline));
+          const deltaPercent =
+            ((hrvValues[hrvValues.length - 1].val - baseline) / baseline) * 100;
+          setHrvDeltaPercent(Math.round(deltaPercent));
+        }
       }
     }
 
@@ -140,74 +199,130 @@ export function MetricsGrid() {
             <div className="flex items-center gap-2 text-xs font-semibold text-white/60 uppercase tracking-wider">
               <Moon className="w-3.5 h-3.5 text-violet-400" /> Sleep
             </div>
-            <div className="text-[10px] font-bold text-violet-300 bg-violet-500/10 px-2 py-0.5 rounded-full">
-              Avg 7h 45m
+            {sleepDelta !== null && (
+              <div
+                className={`flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                  sleepDelta >= 0
+                    ? "bg-emerald-500/10 text-emerald-400"
+                    : "bg-amber-500/10 text-amber-400"
+                }`}
+              >
+                {sleepDelta >= 0 ? (
+                  <ArrowUp className="w-3 h-3" />
+                ) : (
+                  <ArrowDown className="w-3 h-3" />
+                )}
+                {Math.abs(sleepDelta)} pts
+              </div>
+            )}
+          </div>
+
+          {lastSleepScore !== null ? (
+            <>
+              <div className="flex items-baseline gap-1 mb-1">
+                <span className="text-3xl font-bold text-white tracking-tight">
+                  {lastSleepScore}
+                </span>
+                <span className="text-xs font-medium text-white/40">Score</span>
+              </div>
+
+              <div className="text-xs text-white/40 mb-4 font-medium">
+                {sleepDelta !== null && sleepDelta >= 0 ? "+" : ""}
+                {sleepDelta} pts vs 7d avg
+              </div>
+
+              <div className="h-12 -mx-2">
+                <SparkAreaChart
+                  data={sleepData.length > 0 ? sleepData : [{ day: "Now", val: 0 }]}
+                  categories={["val"]}
+                  index="day"
+                  colors={["violet"]}
+                  className="h-full w-full"
+                  showTooltip={false}
+                  showGridLines={false}
+                  showYAxis={false}
+                  showXAxis={false}
+                />
+              </div>
+            </>
+          ) : (
+            <div className="py-4 text-center">
+              <p className="text-sm text-white/40 mb-2">No sleep data yet</p>
+              <Link
+                href="/health"
+                className="text-xs text-violet-400 hover:text-violet-300"
+              >
+                Import Garmin data →
+              </Link>
             </div>
-          </div>
-
-          <div className="flex items-baseline gap-1 mb-1">
-            <span className="text-3xl font-bold text-white tracking-tight">
-              82
-            </span>
-            <span className="text-xs font-medium text-white/40">Score</span>
-          </div>
-
-          <div className="text-xs text-white/40 mb-4 font-medium">
-            +4 pts vs 7d avg
-          </div>
-
-          <div className="h-12 -mx-2">
-            <SparkAreaChart
-              data={sleepData}
-              categories={["val"]}
-              index="day"
-              colors={["violet"]}
-              className="h-full w-full"
-              showTooltip={false}
-              showGridLines={false}
-              showYAxis={false}
-              showXAxis={false}
-            />
-          </div>
+          )}
         </CardContent>
       </Card>
 
       {/* HRV Card (Full Width) */}
       <Card className="col-span-2 bg-card/50 border-white/5 backdrop-blur-sm group hover:bg-white/5 transition-colors duration-300">
         <CardContent className="p-5 flex items-center justify-between">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2 text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">
-              <Activity className="w-3.5 h-3.5 text-rose-400" /> HRV Status
-            </div>
-            <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-bold text-white tracking-tight">
-                45
-              </span>
-              <span className="text-sm font-medium text-white/40">ms</span>
-            </div>
-            <div className="flex items-center gap-2 mt-1">
-              <span className="bg-emerald-500/10 text-emerald-400 text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide">
-                Optimal
-              </span>
-              <span className="text-xs text-white/40 font-medium">
-                +8% vs baseline
-              </span>
-            </div>
-          </div>
+          {lastHrv !== null ? (
+            <>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">
+                  <Activity className="w-3.5 h-3.5 text-rose-400" /> HRV Status
+                </div>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-3xl font-bold text-white tracking-tight">
+                    {lastHrv}
+                  </span>
+                  <span className="text-sm font-medium text-white/40">ms</span>
+                </div>
+                <div className="flex items-center gap-2 mt-1">
+                  <span
+                    className={`text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide ${
+                      hrvDeltaPercent !== null && hrvDeltaPercent >= 0
+                        ? "bg-emerald-500/10 text-emerald-400"
+                        : "bg-amber-500/10 text-amber-400"
+                    }`}
+                  >
+                    {hrvDeltaPercent !== null && hrvDeltaPercent >= 5
+                      ? "Optimal"
+                      : hrvDeltaPercent !== null && hrvDeltaPercent >= -5
+                      ? "Normal"
+                      : "Low"}
+                  </span>
+                  <span className="text-xs text-white/40 font-medium">
+                    {hrvDeltaPercent !== null && hrvDeltaPercent >= 0 ? "+" : ""}
+                    {hrvDeltaPercent}% vs baseline
+                  </span>
+                </div>
+              </div>
 
-          <div className="w-1/2 h-16">
-            <SparkAreaChart
-              data={sleepData} // Placeholder data
-              categories={["val"]}
-              index="day"
-              colors={["rose"]}
-              className="h-full w-full"
-              showTooltip={false}
-              showGridLines={false}
-              showYAxis={false}
-              showXAxis={false}
-            />
-          </div>
+              <div className="w-1/2 h-16">
+                <SparkAreaChart
+                  data={hrvData.length > 0 ? hrvData : [{ day: "Now", val: 0 }]}
+                  categories={["val"]}
+                  index="day"
+                  colors={["rose"]}
+                  className="h-full w-full"
+                  showTooltip={false}
+                  showGridLines={false}
+                  showYAxis={false}
+                  showXAxis={false}
+                />
+              </div>
+            </>
+          ) : (
+            <div className="w-full py-2 text-center">
+              <div className="flex items-center justify-center gap-2 text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">
+                <Activity className="w-3.5 h-3.5 text-rose-400" /> HRV Status
+              </div>
+              <p className="text-sm text-white/40 mb-2">No HRV data yet</p>
+              <Link
+                href="/health"
+                className="text-xs text-rose-400 hover:text-rose-300"
+              >
+                Import Garmin data →
+              </Link>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

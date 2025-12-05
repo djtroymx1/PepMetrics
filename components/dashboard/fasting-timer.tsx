@@ -11,6 +11,14 @@ import {
   clearFastingStart,
 } from "@/lib/storage";
 import { QuickLogModal } from "@/components/quick-log-modal";
+import { createClient } from "@/lib/supabase/client";
+import { useAuth } from "@/components/providers/auth-provider";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 function FastingRing({ elapsed, goal }: { elapsed: number; goal: number }) {
   const progress = Math.min(elapsed / goal, 1);
@@ -73,10 +81,30 @@ function FastingRing({ elapsed, goal }: { elapsed: number; goal: number }) {
   );
 }
 
+function formatTimeAgo(date: Date): string {
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / (1000 * 60));
+  const diffHours = Math.floor(diffMins / 60);
+  const diffDays = Math.floor(diffHours / 24);
+
+  if (diffDays > 0) {
+    return `${diffDays}d ${diffHours % 24}h ago`;
+  } else if (diffHours > 0) {
+    return `${diffHours}h ${diffMins % 60}m ago`;
+  } else if (diffMins > 0) {
+    return `${diffMins}m ago`;
+  }
+  return "Just now";
+}
+
 export function FastingTimer() {
+  const { user } = useAuth();
   const [fastingStart, setFastingStart] = useState<Date | null>(null);
   const [elapsed, setElapsed] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [lastMealTime, setLastMealTime] = useState<Date | null>(null);
+  const [lastMealDisplay, setLastMealDisplay] = useState<string>("--");
 
   const loadData = useCallback(() => {
     const start = getFastingStart();
@@ -89,6 +117,36 @@ export function FastingTimer() {
       setElapsed(0);
     }
   }, []);
+
+  // Fetch last meal from Supabase
+  useEffect(() => {
+    async function fetchLastMeal() {
+      if (!user) return;
+      const supabase = createClient();
+      const { data } = await supabase
+        .from("meals")
+        .select("meal_time")
+        .eq("user_id", user.id)
+        .order("meal_time", { ascending: false })
+        .limit(1);
+
+      if (data && data.length > 0) {
+        const mealTime = new Date(data[0].meal_time);
+        setLastMealTime(mealTime);
+        setLastMealDisplay(formatTimeAgo(mealTime));
+      }
+    }
+    fetchLastMeal();
+  }, [user, isModalOpen]); // Re-fetch when modal closes (new meal may have been logged)
+
+  // Update last meal display every minute
+  useEffect(() => {
+    if (!lastMealTime) return;
+    const interval = setInterval(() => {
+      setLastMealDisplay(formatTimeAgo(lastMealTime));
+    }, 60000);
+    return () => clearInterval(interval);
+  }, [lastMealTime]);
 
   useEffect(() => {
     loadData();
@@ -133,13 +191,28 @@ export function FastingTimer() {
               <Zap className="w-3 h-3 text-amber-400" /> Fasting
             </div>
             {isSafeToInject && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="bg-emerald-500/20 text-emerald-400 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.2)]"
-              >
-                SAFE TO INJECT
-              </motion.div>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="bg-emerald-500/20 text-emerald-400 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.2)] cursor-help"
+                    >
+                      SAFE TO INJECT
+                    </motion.div>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="max-w-xs">
+                    <p className="text-xs">
+                      <span className="font-semibold">Fasting peptides:</span>{" "}
+                      Retatrutide, MOTS-c, Tesamorelin
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      These work best when taken 2+ hours after eating
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             )}
           </div>
 
@@ -181,7 +254,10 @@ export function FastingTimer() {
                 Log Meal
               </div>
               <div className="text-[10px] font-medium text-white/40">
-                Last: <span className="text-white/60">2h 15m ago</span>
+                Last:{" "}
+                <span className="text-white/60">
+                  {lastMealTime ? lastMealDisplay : "No meals logged"}
+                </span>
               </div>
             </div>
           </div>

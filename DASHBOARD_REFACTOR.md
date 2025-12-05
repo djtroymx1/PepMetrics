@@ -64,9 +64,11 @@ components/dashboard/
 - **Logic:**
   - Persists `fastingStart` timestamp in `localStorage`.
   - Updates elapsed time every 60 seconds.
+  - Fetches last meal timestamp from **Supabase** (`meals` table) to show "Last: Xh Ym ago".
 - **Smart Features:**
-  - **"Safe to Inject" Badge:** Automatically appears when `elapsedTime >= 2 hours`. This removes the need for mental math for peptides requiring a fasted state.
+  - **"Safe to Inject" Badge:** Automatically appears when `elapsedTime >= 2 hours`. Includes tooltip listing fasting-required peptides (Retatrutide, MOTS-c, Tesamorelin).
   - **Color Phases:** Ring changes color (Blue -> Teal -> Violet) as fasting duration increases.
+  - **Meal Timestamp:** Shows relative time since last logged meal, or "No meals logged" if none exist.
 
 ### C. Weekly Overview (`weekly-overview.tsx`)
 
@@ -81,7 +83,9 @@ components/dashboard/
 - **Purpose:** High-level health trends without the clutter of full tables.
 - **Data Sources:**
   - **Weight:** Connected to **Supabase** (`weights` table). Calculates 8-week trend and percentage change.
-  - **Sleep/HRV:** Currently using placeholder data (structure ready for API integration).
+  - **Sleep:** Connected to **Supabase** (`garmin_data` table). Shows last night's sleep score, delta vs 7-day average, and sparkline.
+  - **HRV:** Connected to **Supabase** (`garmin_data` table). Shows latest HRV in ms, % change vs baseline, status badge (Optimal/Normal/Low), and sparkline.
+- **Empty States:** If no Garmin data exists, cards show "Import Garmin data" link to `/health`.
 - **Visuals:** Uses Tremor Sparklines to show immediate trends (Up/Down) rather than just static numbers.
 
 ## 4. Data Flow
@@ -89,11 +93,16 @@ components/dashboard/
 The dashboard follows a **"Pull" architecture**:
 
 1.  **Local Storage:** Protocols, Doses, and Fasting state are read directly from the browser's `localStorage` using custom hooks/helpers in `lib/storage.ts`.
-2.  **Supabase:** Weight data is fetched via the Supabase Client SDK.
+2.  **Supabase:** Weight, Sleep, HRV, and Meal data are fetched via the Supabase Client SDK.
+    - `weights` table: Weight metrics
+    - `garmin_data` table: Sleep scores and HRV values
+    - `meals` table: Last meal timestamp
 3.  **Reactivity:** Components listen for `window` storage events to sync state across tabs instantly.
 
 ## 5. Future Roadmap
 
-- [ ] **Sleep/HRV Integration:** Connect `metrics-grid.tsx` to Oura/Garmin APIs or Supabase tables.
+- [x] **Sleep/HRV Integration:** Connected `metrics-grid.tsx` to Garmin data via Supabase `garmin_data` table. _(Completed Dec 4, 2025)_
+- [x] **Meal Timestamp:** Connected fasting timer to show last meal time from Supabase `meals` table. _(Completed Dec 4, 2025)_
+- [x] **Fasting Peptide Tooltip:** Added tooltip to "Safe to Inject" badge listing peptides that require fasting. _(Completed Dec 4, 2025)_
 - [ ] **Customization:** Allow users to drag-and-drop zones to reorder them.
 - [ ] **Haptics:** Add vibration feedback for mobile users when completing tasks.
