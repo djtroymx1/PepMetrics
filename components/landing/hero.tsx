@@ -19,8 +19,11 @@ export function Hero() {
             </span>
             Now with AI-powered insights
           </div>
-          <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-6 bg-clip-text text-transparent bg-gradient-to-b from-white to-white/60 animate-fade-in delay-100">
-            Track Your Peptides. See What&apos;s Working.
+          <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-6 text-white animate-fade-in delay-100">
+            Track Your Peptides. <br className="hidden md:block" />
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-teal-400 to-teal-200">
+              See What&apos;s Working.
+            </span>
           </h1>
           <p className="text-xl text-zinc-400 mb-8 max-w-2xl mx-auto leading-relaxed">
             Log your doses, track your fasting windows, and connect your Garmin
