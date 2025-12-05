@@ -151,7 +151,6 @@ function calculateMetricCorrelation(
 
   const doseMean = mean(doseGroup)
   const noDoseMean = mean(noDoseGroup)
-  const overallMean = mean(pairs.map(p => p.metricValue))
   const overallStd = std(pairs.map(p => p.metricValue))
 
   if (overallStd === 0) {

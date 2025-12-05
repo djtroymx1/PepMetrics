@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { AppSidebar } from "@/components/app-sidebar"
@@ -116,7 +116,7 @@ export default function InsightsPage() {
             : null
 
           const windowLine = data.analysisWindow
-            ? `Analyzed window: ${data.analysisWindow.start} → ${data.analysisWindow.end}`
+            ? `Analyzed window: ${data.analysisWindow.start} to ${data.analysisWindow.end}`
             : null
 
           const details = [

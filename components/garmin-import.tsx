@@ -1,9 +1,8 @@
-'use client'
+﻿'use client'
 
 import { useRef, useState, useCallback, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import {
-  Upload,
   FileSpreadsheet,
   CheckCircle2,
   AlertCircle,
@@ -277,7 +276,7 @@ export function GarminImport({ onImportComplete }: GarminImportProps) {
               <div>
                 <h4 className="font-medium mb-2 flex items-center gap-2">
                   <span className="px-1.5 py-0.5 text-xs rounded bg-primary/20 text-primary">Recommended</span>
-                  Full Export (ZIP) — Sleep, HRV, Stress, Activity
+                  Full Export (ZIP) - Sleep, HRV, Stress, Activity
                 </h4>
                 <p className="text-muted-foreground mb-2">
                   Best for AI insights. Includes sleep quality, heart rate variability, stress levels, and daily activity.
@@ -296,7 +295,7 @@ export function GarminImport({ onImportComplete }: GarminImportProps) {
                   </li>
                   <li>Click <strong>Request Data Export</strong> and wait for email</li>
                   <li>Download the ZIP file from the email link</li>
-                  <li><strong>Drop the ZIP file directly into the upload area above</strong> — no need to extract!</li>
+                  <li><strong>Drop the ZIP file directly into the upload area above</strong> - no need to extract!</li>
                 </ol>
                 <p className="text-xs text-muted-foreground mt-2">
                   We automatically find and import the last 90 days of health data.
@@ -310,7 +309,7 @@ export function GarminImport({ onImportComplete }: GarminImportProps) {
                 </p>
                 <ol className="list-decimal list-inside space-y-1 text-xs text-muted-foreground">
                   <li>Go to <a href="https://connect.garmin.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">connect.garmin.com</a></li>
-                  <li>Click Activities → Export CSV (upper right)</li>
+                  <li>Click Activities â†’ Export CSV (upper right)</li>
                 </ol>
               </div>
 

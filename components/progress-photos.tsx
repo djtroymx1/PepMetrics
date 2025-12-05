@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Image from "next/image"
 import { Camera, ChevronLeft, ChevronRight } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -93,11 +94,13 @@ export function ProgressPhotos() {
       <div className="grid grid-cols-3 gap-4">
         {(["front", "side", "back"] as const).map((angle) => (
           <div key={angle} className="space-y-2">
-            <div className="aspect-[2/3] rounded-lg border border-border bg-elevated overflow-hidden">
-              <img
+            <div className="relative aspect-[2/3] rounded-lg border border-border bg-elevated overflow-hidden">
+              <Image
                 src={current.photos[angle] || "/placeholder.svg"}
                 alt={`${angle} view`}
-                className="h-full w-full object-cover"
+                fill
+                sizes="(min-width: 1024px) 20vw, 33vw"
+                className="object-cover"
               />
             </div>
             <p className="text-xs text-center text-text-muted capitalize">{angle}</p>

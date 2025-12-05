@@ -42,7 +42,6 @@ export function MetricsGrid() {
   // HRV state
   const [hrvData, setHrvData] = useState<ChartData[]>([]);
   const [lastHrv, setLastHrv] = useState<number | null>(null);
-  const [hrvBaseline, setHrvBaseline] = useState<number | null>(null);
   const [hrvDeltaPercent, setHrvDeltaPercent] = useState<number | null>(null);
 
   useEffect(() => {
@@ -129,7 +128,6 @@ export function MetricsGrid() {
           setLastHrv(Math.round(hrvValues[hrvValues.length - 1].val));
           const baseline =
             hrvValues.reduce((sum, h) => sum + h.val, 0) / hrvValues.length;
-          setHrvBaseline(Math.round(baseline));
           const deltaPercent =
             ((hrvValues[hrvValues.length - 1].val - baseline) / baseline) * 100;
           setHrvDeltaPercent(Math.round(deltaPercent));

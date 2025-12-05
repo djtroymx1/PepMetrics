@@ -10,7 +10,7 @@ import {
 } from '@/lib/parsers'
 import type { GarminImportResult, ParsedGarminActivity, GarminDailySummary } from '@/lib/types'
 
-const MAX_FILE_SIZE = 200 * 1024 * 1024 // 200MB for ZIP files
+const MAX_FILE_SIZE = 150 * 1024 * 1024 // 150MB cap for uploads
 
 // For Vercel: Configure max duration for large file processing
 export const maxDuration = 60 // 60 seconds

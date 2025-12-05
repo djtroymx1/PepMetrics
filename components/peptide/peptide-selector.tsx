@@ -12,7 +12,6 @@ import {
   STACK_CATEGORY_DISPLAY_NAMES,
   getPeptideById,
   getStackById,
-  getPeptideDisplayName,
   getStackComponents,
   formatDoseRange,
   type Peptide,

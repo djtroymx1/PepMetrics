@@ -5,7 +5,7 @@ import { X, Syringe, Utensils, Weight, Droplets, Loader2, Check, Clock, AlertCir
 import { cn } from "@/lib/utils"
 import { createClient } from "@/lib/supabase/client"
 import { useAuth } from "@/components/providers/auth-provider"
-import { getProtocols, getDoseLogs, markDoseAsTaken, markDoseAsSkipped } from "@/lib/storage"
+import { getProtocols, markDoseAsTaken, markDoseAsSkipped } from "@/lib/storage"
 import { getDosesToday, getOverdueDoses } from "@/lib/scheduling"
 import { TimingBadge } from "@/components/timing-badge"
 import {
@@ -14,7 +14,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import type { Protocol, DoseLog, ScheduledDose } from "@/lib/types"
+import type { Protocol, ScheduledDose } from "@/lib/types"
 
 interface QuickLogModalProps {
   isOpen: boolean
@@ -93,15 +93,12 @@ export function QuickLogModal({ isOpen, onClose, onDoseLogged }: QuickLogModalPr
 // New injection form that works with the protocol/scheduling system
 function InjectionForm({ onDoseLogged, onClose }: { onDoseLogged: () => void, onClose: () => void }) {
   const [protocols, setProtocols] = useState<Protocol[]>([])
-  const [doseLogs, setDoseLogs] = useState<DoseLog[]>([])
   const [pendingDoses, setPendingDoses] = useState<ScheduledDose[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const prots = getProtocols()
-    const logs = getDoseLogs()
     setProtocols(prots)
-    setDoseLogs(logs)
 
     // Get today's pending/overdue doses
     const todayDoses = getDosesToday(prots.filter(p => p.status === 'active'), logs)

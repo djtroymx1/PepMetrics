@@ -14,18 +14,23 @@ import type {
   ChatContext,
 } from '@/lib/types'
 
-// Initialize Anthropic client
-const apiKey = process.env.ANTHROPIC_API_KEY
+// Initialize Anthropic client lazily to avoid throwing at module import time
+let anthropic: Anthropic | null = null
 
-if (!apiKey) {
-  throw new Error('Missing ANTHROPIC_API_KEY environment variable')
+function getAnthropicClient(): Anthropic {
+  const apiKey = process.env.ANTHROPIC_API_KEY
+  if (!apiKey) {
+    throw new Error('Anthropic API key is missing')
+  }
+  if (!anthropic) {
+    anthropic = new Anthropic({ apiKey })
+  }
+  return anthropic
 }
 
-const anthropic = new Anthropic({ apiKey })
-
 // Model configuration
-const WEEKLY_ANALYSIS_MODEL = 'claude-sonnet-4-20250514'
-const CHAT_MODEL = 'claude-haiku-4-5-20251001' // Cost-effective chat model per spec
+const WEEKLY_ANALYSIS_MODEL = 'claude-3-5-sonnet-20241022'
+const CHAT_MODEL = 'claude-3-haiku-20241022' // Cost-effective chat model
 
 // Token limits
 const WEEKLY_ANALYSIS_MAX_TOKENS = 2000
@@ -193,7 +198,9 @@ function parseInsightsResponse(responseText: string): WeeklyInsightsResponse {
 export async function generateWeeklyInsights(
   userData: UserAnalysisData
 ): Promise<{ response: WeeklyInsightsResponse; usage: { inputTokens: number; outputTokens: number } }> {
-  const response = await anthropic.messages.create({
+  const client = getAnthropicClient()
+
+  const response = await client.messages.create({
     model: WEEKLY_ANALYSIS_MODEL,
     max_tokens: WEEKLY_ANALYSIS_MAX_TOKENS,
     system: WEEKLY_ANALYSIS_SYSTEM_PROMPT,
@@ -244,7 +251,9 @@ ${buildChatContextPrompt(context)}`
     content: msg.content,
   }))
 
-  const response = await anthropic.messages.create({
+  const client = getAnthropicClient()
+
+  const response = await client.messages.create({
     model: CHAT_MODEL,
     max_tokens: CHAT_MAX_TOKENS,
     system: systemPrompt,
@@ -289,7 +298,9 @@ ${buildChatContextPrompt(context)}`
     content: msg.content,
   }))
 
-  const stream = anthropic.messages.stream({
+  const client = getAnthropicClient()
+
+  const stream = client.messages.stream({
     model: CHAT_MODEL,
     max_tokens: CHAT_MAX_TOKENS,
     system: systemPrompt,
@@ -325,7 +336,8 @@ ${buildChatContextPrompt(context)}`
 export async function checkApiConnection(): Promise<boolean> {
   try {
     // Make a minimal API call to verify connection
-    const response = await anthropic.messages.create({
+    const client = getAnthropicClient()
+    const response = await client.messages.create({
       model: CHAT_MODEL,
       max_tokens: 10,
       messages: [{ role: 'user', content: 'Hi' }],

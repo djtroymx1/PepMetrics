@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useEffect, useMemo } from "react"
 import { cn } from "@/lib/utils"
 import { getStackById, getStackComponents } from "@/lib/data/peptides"
 import type { StackComponentConcentration } from "@/lib/types"

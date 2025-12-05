@@ -38,17 +38,6 @@ const biomarkerCategories = [
   },
 ]
 
-function getStatusColor(status: string) {
-  switch (status) {
-    case "optimal": return "text-green-500"
-    case "normal": return "text-blue-400"
-    case "elevated": return "text-amber-500"
-    case "high": return "text-red-500"
-    case "low": return "text-amber-500"
-    default: return "text-muted-foreground"
-  }
-}
-
 function getTrendIcon(trend: string) {
   switch (trend) {
     case "up": return <TrendingUp className="h-4 w-4 text-green-500" />

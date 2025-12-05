@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import type { GarminImportResult, GarminDailySummary } from '@/lib/types'
+import type { GarminImportResult } from '@/lib/types'
 import {
   parseGarminExportZip,
   dailyDataToArray,
@@ -64,6 +64,29 @@ export function useGarminImport(): UseGarminImportReturn {
   const [importHistory, setImportHistory] = useState<ImportHistory[]>([])
   const [activityStats, setActivityStats] = useState<ActivityStats | null>(null)
 
+  const fetchHistory = useCallback(async () => {
+    setIsLoadingHistory(true)
+
+    try {
+      const response = await fetch('/api/garmin/import', {
+        credentials: 'include',
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch import history')
+      }
+
+      const data: ImportHistoryResponse = await response.json()
+      setImportHistory(data.imports)
+      setActivityStats(data.activityStats)
+
+    } catch (error) {
+      console.error('Failed to fetch import history:', error)
+    } finally {
+      setIsLoadingHistory(false)
+    }
+  }, [])
+
   const uploadFile = useCallback(async (file: File): Promise<GarminImportResult | null> => {
     setIsUploading(true)
     setUploadProgress(0)
@@ -81,10 +104,10 @@ export function useGarminImport(): UseGarminImportReturn {
         throw new Error('Please upload a ZIP (recommended), CSV, or JSON file from Garmin')
       }
 
-      // Validate file size (500MB for ZIP since we process client-side, 5MB for others)
-      const maxSize = isZip ? 500 * 1024 * 1024 : 5 * 1024 * 1024
+      // Validate file size (150MB for ZIP since we process client-side, 5MB for others)
+      const maxSize = isZip ? 150 * 1024 * 1024 : 5 * 1024 * 1024
       if (file.size > maxSize) {
-        throw new Error(`File size exceeds ${isZip ? '500MB' : '5MB'} limit`)
+        throw new Error(`File size exceeds ${isZip ? '150MB' : '5MB'} limit`)
       }
 
       // For ZIP files, process client-side and send only the parsed data
@@ -185,30 +208,7 @@ export function useGarminImport(): UseGarminImportReturn {
     } finally {
       setIsUploading(false)
     }
-  }, [])
-
-  const fetchHistory = useCallback(async () => {
-    setIsLoadingHistory(true)
-
-    try {
-      const response = await fetch('/api/garmin/import', {
-        credentials: 'include',
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch import history')
-      }
-
-      const data: ImportHistoryResponse = await response.json()
-      setImportHistory(data.imports)
-      setActivityStats(data.activityStats)
-
-    } catch (error) {
-      console.error('Failed to fetch import history:', error)
-    } finally {
-      setIsLoadingHistory(false)
-    }
-  }, [])
+  }, [fetchHistory])
 
   const reset = useCallback(() => {
     setUploadProgress(0)

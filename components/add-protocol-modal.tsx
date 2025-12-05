@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { useState, useMemo, useCallback, useEffect } from "react"
 import { X, Loader2, AlertTriangle, Shield, Layers } from "lucide-react"
@@ -32,7 +32,6 @@ export function AddProtocolModal({ isOpen, onClose, onProtocolAdded, editProtoco
 
   // Form state
   const [peptideId, setPeptideId] = useState<string | null>(null)
-  const [selectedItem, setSelectedItem] = useState<PeptideOrStack | null>(null)
   const [customPeptideName, setCustomPeptideName] = useState("")
   const [vialSize, setVialSize] = useState<number | null>(null)
   const [stackConcentrations, setStackConcentrations] = useState<StackComponentConcentration[]>([])
@@ -74,19 +73,6 @@ export function AddProtocolModal({ isOpen, onClose, onProtocolAdded, editProtoco
       setPreferredTime(editProtocol.preferredTime || "")
       setDosesPerDay(String(editProtocol.dosesPerDay))
       setStartDate(editProtocol.startDate)
-
-      // Set selectedItem based on peptideId
-      const peptide = getPeptideById(editProtocol.peptideId)
-      if (peptide) {
-        setSelectedItem({ type: 'peptide', data: peptide })
-      } else {
-        const stack = getStackById(editProtocol.peptideId)
-        if (stack) {
-          setSelectedItem({ type: 'stack', data: stack })
-        } else if (editProtocol.peptideId === 'custom') {
-          setSelectedItem({ type: 'custom' })
-        }
-      }
     } else if (!editProtocol && isOpen) {
       // Reset form when opening in add mode
       resetForm()
@@ -112,7 +98,6 @@ export function AddProtocolModal({ isOpen, onClose, onProtocolAdded, editProtoco
   // Handle peptide selection change
   const handlePeptideChange = useCallback((id: string | null, item: PeptideOrStack | null) => {
     setPeptideId(id)
-    setSelectedItem(item)
     setVialSize(null)
     setStackConcentrations([])
 
@@ -209,7 +194,6 @@ export function AddProtocolModal({ isOpen, onClose, onProtocolAdded, editProtoco
 
   const resetForm = () => {
     setPeptideId(null)
-    setSelectedItem(null)
     setCustomPeptideName("")
     setVialSize(null)
     setStackConcentrations([])

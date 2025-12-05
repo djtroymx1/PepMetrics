@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { Check, X, AlertCircle, Clock, RotateCcw } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -25,7 +25,6 @@ export function DoseCard({
   className,
 }: DoseCardProps) {
   const isActionable = dose.status === 'pending' || dose.status === 'overdue'
-  const isPast = dose.status === 'taken' || dose.status === 'skipped'
 
   return (
     <div

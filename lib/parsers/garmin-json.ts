@@ -18,7 +18,6 @@ import type { GarminDailySummary } from '@/lib/types'
 import {
   scanZipForGarminFiles,
   extractFilesFromZip,
-  type GarminFileInfo,
   type ZipScanResult,
 } from './garmin-file-scanner'
 

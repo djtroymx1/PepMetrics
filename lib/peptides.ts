@@ -4,7 +4,6 @@
 import {
   PEPTIDES as NEW_PEPTIDES,
   getPeptideById as getNewPeptideById,
-  searchPeptides as searchNewPeptides,
   type Peptide,
 } from './data/peptides'
 

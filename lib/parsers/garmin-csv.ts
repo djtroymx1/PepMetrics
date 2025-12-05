@@ -276,39 +276,6 @@ function parseGarminDateTime(dateStr: string): string | null {
 }
 
 /**
- * Parse time string (e.g., "14:30:00", "2:30 PM")
- */
-function parseTime(timeStr: string): { hours: number; minutes: number; seconds: number } | null {
-  // 24-hour format: 14:30:00 or 14:30
-  const match24 = timeStr.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/)
-  if (match24) {
-    return {
-      hours: parseInt(match24[1]),
-      minutes: parseInt(match24[2]),
-      seconds: parseInt(match24[3] || '0'),
-    }
-  }
-
-  // 12-hour format: 2:30 PM or 2:30:00 PM
-  const match12 = timeStr.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)$/i)
-  if (match12) {
-    let hours = parseInt(match12[1])
-    const isPM = match12[4].toUpperCase() === 'PM'
-
-    if (isPM && hours !== 12) hours += 12
-    if (!isPM && hours === 12) hours = 0
-
-    return {
-      hours,
-      minutes: parseInt(match12[2]),
-      seconds: parseInt(match12[3] || '0'),
-    }
-  }
-
-  return null
-}
-
-/**
  * Parse duration strings
  * Formats: "01:30:00" (HH:MM:SS), "90:00" (MM:SS), "5400" (seconds)
  */

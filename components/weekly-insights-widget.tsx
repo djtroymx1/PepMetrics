@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Sparkles, ChevronRight, TrendingUp, TrendingDown, Minus, AlertCircle } from 'lucide-react'
+import { Sparkles, ChevronRight, TrendingUp, AlertCircle } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 import type { Insight, InsightSeverity } from '@/lib/types'

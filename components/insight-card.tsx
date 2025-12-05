@@ -13,7 +13,7 @@ import {
 import { Card } from '@/components/ui/card'
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible'
 import { cn } from '@/lib/utils'
-import type { Insight, InsightType, InsightSeverity, InsightConfidence } from '@/lib/types'
+import type { Insight, InsightType } from '@/lib/types'
 import { INSIGHT_TYPE_INFO, INSIGHT_SEVERITY_INFO, INSIGHT_CONFIDENCE_INFO } from '@/lib/types'
 
 interface InsightCardProps {

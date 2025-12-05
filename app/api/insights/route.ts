@@ -23,14 +23,17 @@ export async function GET(request: NextRequest) {
 
     // Parse query parameters
     const { searchParams } = new URL(request.url)
-    const limit = parseInt(searchParams.get('limit') || '10')
-    const offset = parseInt(searchParams.get('offset') || '0')
+    const rawLimit = Number.parseInt(searchParams.get('limit') || '10', 10)
+    const rawOffset = Number.parseInt(searchParams.get('offset') || '0', 10)
+
+    const limit = Math.min(Math.max(rawLimit || 10, 1), 100)
+    const offset = Math.max(rawOffset || 0, 0)
     const weekStart = searchParams.get('week_start')
 
     // Build query
     let query = supabase
       .from('ai_insights')
-      .select('*')
+      .select('*', { count: 'exact' })
       .eq('user_id', user.id)
       .order('week_start', { ascending: false })
       .range(offset, offset + limit - 1)
@@ -77,8 +80,8 @@ export async function GET(request: NextRequest) {
       pagination: {
         limit,
         offset,
-        total: count || insights.length,
-        hasMore: insights.length === limit,
+        total: count ?? insights.length,
+        hasMore: offset + insights.length < (count ?? offset + insights.length),
       },
     })
 

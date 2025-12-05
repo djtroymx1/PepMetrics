@@ -1,4 +1,4 @@
-import { Calendar, BadgeCheck, Users2 } from "lucide-react";
+﻿import { Calendar, BadgeCheck, Users2 } from "lucide-react";
 import Image from "next/image";
 
 export function AnalyticsSection() {
@@ -23,10 +23,12 @@ export function AnalyticsSection() {
               </div>
             </div>
             <div className="mt-4 rounded-lg bg-black/60 ring-1 ring-white/10 p-3 overflow-hidden relative aspect-video group">
-              <img
+              <Image
                 src="/assets/landing/progress-landscape-cropped.png"
                 alt="Weekly Progress"
-                className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
+                fill
+                sizes="(min-width: 1024px) 50vw, 100vw"
+                className="object-cover opacity-80 group-hover:opacity-100 transition-opacity"
               />
             </div>
             <div className="mt-4 grid grid-cols-3 gap-3">
@@ -74,8 +76,7 @@ export function AnalyticsSection() {
                     </span>
                   </div>
                   <p className="text-sm text-zinc-300 mt-1">
-                    “Finally a way to track my cycles properly. The fasting
-                    timer integration is a game changer.”
+                    &ldquo;Finally a way to track my cycles properly. The fasting timer integration is a game changer.&rdquo;
                   </p>
                 </div>
               </div>
@@ -93,8 +94,8 @@ export function AnalyticsSection() {
                     </span>
                   </div>
                   <p className="text-sm text-zinc-300 mt-1">
-                    “Seeing my HRV trends alongside my protocol helped me dial
-                    in my dosage perfectly.”
+                    â€œSeeing my HRV trends alongside my protocol helped me dial
+                    in my dosage perfectly.â€
                   </p>
                 </div>
               </div>
