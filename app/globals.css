@@ -58,15 +58,15 @@
 
 /* Light mode override */
 .light {
-  --background: #f8f9fa;
-  --foreground: #1a1a1a;
+  --background: #e2e8f0;
+  --foreground: #0f172a;
   --card: #ffffff;
-  --card-foreground: #1a1a1a;
+  --card-foreground: #0f172a;
   --popover: #ffffff;
-  --popover-foreground: #1a1a1a;
-  --primary: #14b8a6;
+  --popover-foreground: #0f172a;
+  --primary: #0d9488;
   --primary-foreground: #ffffff;
-  --secondary: #8b5cf6;
+  --secondary: #7c3aed;
   --secondary-foreground: #ffffff;
   --muted: #f1f5f9;
   --muted-foreground: #64748b;
@@ -74,23 +74,23 @@
   --accent-foreground: #ffffff;
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
-  --border: #cbd5e1;
-  --input: #e2e8f0;
-  --ring: #14b8a6;
+  --border: #94a3b8;
+  --input: #cbd5e1;
+  --ring: #0d9488;
   --sidebar: #ffffff;
-  --sidebar-foreground: #1a1a1a;
-  --sidebar-primary: #14b8a6;
+  --sidebar-foreground: #0f172a;
+  --sidebar-primary: #0d9488;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #f8f9fa;
-  --sidebar-accent-foreground: #1a1a1a;
-  --sidebar-border: #e2e8f0;
-  --sidebar-ring: #14b8a6;
+  --sidebar-accent: #f1f5f9;
+  --sidebar-accent-foreground: #0f172a;
+  --sidebar-border: #cbd5e1;
+  --sidebar-ring: #0d9488;
 
-  /* Glass surfaces tuned for light - Increased opacity and contrast */
-  --glass-surface: rgba(255, 255, 255, 0.7);
-  --glass-strong: rgba(255, 255, 255, 0.9);
-  --glass-border: rgba(0, 0, 0, 0.15);
-  --glass-track: rgba(0, 0, 0, 0.08);
+  /* Glass surfaces tuned for light - High contrast */
+  --glass-surface: rgba(255, 255, 255, 0.8);
+  --glass-strong: rgba(255, 255, 255, 0.95);
+  --glass-border: rgba(0, 0, 0, 0.2);
+  --glass-track: rgba(0, 0, 0, 0.1);
 }
 
 @theme inline {
