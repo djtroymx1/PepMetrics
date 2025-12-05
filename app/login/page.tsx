@@ -22,17 +22,24 @@ export default function LoginPage() {
     setLoading(true);
     setError(null);
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-    if (error) {
-      setError(error.message);
-      setLoading(false);
-    } else {
+      if (error) {
+        setError(error.message);
+        return;
+      }
+
       router.push("/dashboard");
       router.refresh();
+    } catch (err) {
+      console.error("Login failed", err);
+      setError("Unable to sign in right now. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
