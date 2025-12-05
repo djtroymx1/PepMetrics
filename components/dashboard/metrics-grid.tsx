@@ -3,9 +3,9 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { SparkAreaChart } from "@tremor/react";
 import { createClient } from "@/lib/supabase/client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useAuth } from "@/components/providers/auth-provider";
-import { ArrowDown, ArrowUp, Moon, Activity, Scale } from "lucide-react";
+import { ArrowDown, ArrowUp, Moon, Activity, Scale, Plus, X, Check, Loader2 } from "lucide-react";
 import Link from "next/link";
 
 type ChartData = {
@@ -25,6 +25,14 @@ export function MetricsGrid() {
   const [currentWeight, setCurrentWeight] = useState<number | null>(null);
   const [eightWeekChange, setEightWeekChange] = useState<number | null>(null);
   const [eightWeekPercent, setEightWeekPercent] = useState<number | null>(null);
+
+  // Weight logging state
+  const [isWeightInputOpen, setIsWeightInputOpen] = useState(false);
+  const [weightInput, setWeightInput] = useState("");
+  const [isLoggingWeight, setIsLoggingWeight] = useState(false);
+  const [weightLogSuccess, setWeightLogSuccess] = useState(false);
+  const [refreshCounter, setRefreshCounter] = useState(0);
+  const weightInputRef = useRef<HTMLInputElement>(null);
 
   // Sleep state
   const [sleepData, setSleepData] = useState<ChartData[]>([]);
@@ -130,34 +138,138 @@ export function MetricsGrid() {
     }
 
     loadMetrics();
-  }, [user]);
+  }, [user, refreshCounter]);
+
+  // Focus input when weight input opens
+  useEffect(() => {
+    if (isWeightInputOpen && weightInputRef.current) {
+      weightInputRef.current.focus();
+    }
+  }, [isWeightInputOpen]);
+
+  const logWeight = async () => {
+    if (!user || isLoggingWeight) return;
+    const value = parseFloat(weightInput);
+    if (isNaN(value) || value <= 0) return;
+
+    setIsLoggingWeight(true);
+    setWeightLogSuccess(false);
+
+    const supabase = createClient();
+
+    const { error } = await supabase.from("weights").insert({
+      user_id: user.id,
+      value: value,
+      unit: "lbs",
+      measured_at: new Date().toISOString(),
+    });
+
+    if (!error) {
+      setCurrentWeight(value);
+      setWeightLogSuccess(true);
+      setRefreshCounter((c) => c + 1);
+
+      // Clear success state and close input after 1.5 seconds
+      setTimeout(() => {
+        setWeightLogSuccess(false);
+        setIsWeightInputOpen(false);
+        setWeightInput("");
+      }, 1500);
+    }
+
+    setIsLoggingWeight(false);
+  };
+
+  const handleWeightKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      logWeight();
+    } else if (e.key === "Escape") {
+      setIsWeightInputOpen(false);
+      setWeightInput("");
+    }
+  };
 
   return (
     <div className="grid grid-cols-2 gap-4">
       {/* Weight Card */}
-      <Card className="bg-card/50 border-white/5 backdrop-blur-sm group hover:bg-white/5 transition-colors duration-300">
+      <Card className="bg-card/50 border-white/5 backdrop-blur-sm group hover:bg-white/5 transition-colors duration-300 relative">
         <CardContent className="p-5">
           <div className="flex justify-between items-start mb-3">
             <div className="flex items-center gap-2 text-xs font-semibold text-white/60 uppercase tracking-wider">
               <Scale className="w-3.5 h-3.5 text-teal-400" /> Weight
             </div>
-            {eightWeekChange !== null && (
-              <div
-                className={`flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
-                  eightWeekChange <= 0
-                    ? "bg-emerald-500/10 text-emerald-400"
-                    : "bg-red-500/10 text-red-400"
+            <div className="flex items-center gap-2">
+              {eightWeekChange !== null && (
+                <div
+                  className={`flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                    eightWeekChange <= 0
+                      ? "bg-emerald-500/10 text-emerald-400"
+                      : "bg-red-500/10 text-red-400"
+                  }`}
+                >
+                  {eightWeekChange <= 0 ? (
+                    <ArrowDown className="w-3 h-3" />
+                  ) : (
+                    <ArrowUp className="w-3 h-3" />
+                  )}
+                  {Math.abs(eightWeekPercent || 0)}%
+                </div>
+              )}
+              {!isWeightInputOpen && (
+                <button
+                  onClick={() => setIsWeightInputOpen(true)}
+                  className="flex items-center justify-center w-6 h-6 rounded-full bg-teal-500/10 text-teal-400 hover:bg-teal-500/20 transition-colors"
+                  title="Log weight"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Inline weight input */}
+          {isWeightInputOpen && (
+            <div className="mb-3 flex items-center gap-2">
+              <input
+                ref={weightInputRef}
+                type="number"
+                step="0.1"
+                placeholder={currentWeight?.toString() || "185.0"}
+                value={weightInput}
+                onChange={(e) => setWeightInput(e.target.value)}
+                onKeyDown={handleWeightKeyDown}
+                className="flex-1 h-8 rounded-lg border border-white/10 bg-white/5 px-2 text-sm font-mono tabular-nums text-white placeholder:text-white/30 focus:border-teal-500/50 focus:outline-none focus:ring-1 focus:ring-teal-500/30"
+                disabled={isLoggingWeight}
+              />
+              <span className="text-xs text-white/40">lbs</span>
+              <button
+                onClick={logWeight}
+                disabled={isLoggingWeight || !weightInput}
+                className={`flex items-center justify-center w-7 h-7 rounded-lg transition-colors ${
+                  weightLogSuccess
+                    ? "bg-emerald-500/20 text-emerald-400"
+                    : "bg-teal-500/10 text-teal-400 hover:bg-teal-500/20 disabled:opacity-50"
                 }`}
               >
-                {eightWeekChange <= 0 ? (
-                  <ArrowDown className="w-3 h-3" />
+                {isLoggingWeight ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : weightLogSuccess ? (
+                  <Check className="w-3.5 h-3.5" />
                 ) : (
-                  <ArrowUp className="w-3 h-3" />
+                  <Check className="w-3.5 h-3.5" />
                 )}
-                {Math.abs(eightWeekPercent || 0)}%
-              </div>
-            )}
-          </div>
+              </button>
+              <button
+                onClick={() => {
+                  setIsWeightInputOpen(false);
+                  setWeightInput("");
+                }}
+                className="flex items-center justify-center w-7 h-7 rounded-lg bg-white/5 text-white/40 hover:bg-white/10 hover:text-white/60 transition-colors"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
 
           <div className="flex items-baseline gap-1 mb-1">
             <span className="text-3xl font-bold text-white tracking-tight">

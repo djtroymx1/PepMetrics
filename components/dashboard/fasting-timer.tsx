@@ -3,14 +3,13 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { motion } from "motion/react";
-import { Plus, Play, Square, Utensils, Zap } from "lucide-react";
+import { Plus, Play, Square, Utensils, Zap, Loader2, Check } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import {
   getFastingStart,
   saveFastingStart,
   clearFastingStart,
 } from "@/lib/storage";
-import { QuickLogModal } from "@/components/quick-log-modal";
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/components/providers/auth-provider";
 import {
@@ -102,9 +101,11 @@ export function FastingTimer() {
   const { user } = useAuth();
   const [fastingStart, setFastingStart] = useState<Date | null>(null);
   const [elapsed, setElapsed] = useState(0);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [lastMealTime, setLastMealTime] = useState<Date | null>(null);
   const [lastMealDisplay, setLastMealDisplay] = useState<string>("--");
+  const [isLoggingMeal, setIsLoggingMeal] = useState(false);
+  const [mealLogSuccess, setMealLogSuccess] = useState(false);
+  const [mealLogCounter, setMealLogCounter] = useState(0);
 
   const loadData = useCallback(() => {
     const start = getFastingStart();
@@ -137,7 +138,7 @@ export function FastingTimer() {
       }
     }
     fetchLastMeal();
-  }, [user, isModalOpen]); // Re-fetch when modal closes (new meal may have been logged)
+  }, [user, mealLogCounter]); // Re-fetch when meal is logged
 
   // Update last meal display every minute
   useEffect(() => {
@@ -176,6 +177,40 @@ export function FastingTimer() {
       saveFastingStart(now);
       setFastingStart(now);
     }
+  };
+
+  const logMeal = async () => {
+    if (!user || isLoggingMeal) return;
+
+    setIsLoggingMeal(true);
+    setMealLogSuccess(false);
+
+    const supabase = createClient();
+    const now = new Date();
+
+    const { error } = await supabase.from("meals").insert({
+      user_id: user.id,
+      meal_type: "meal",
+      meal_time: now.toISOString(),
+    });
+
+    if (!error) {
+      // Update UI immediately
+      setLastMealTime(now);
+      setLastMealDisplay("Just now");
+      setMealLogSuccess(true);
+      setMealLogCounter((c) => c + 1);
+
+      // Reset fasting timer
+      saveFastingStart(now);
+      setFastingStart(now);
+      setElapsed(0);
+
+      // Clear success state after 2 seconds
+      setTimeout(() => setMealLogSuccess(false), 2000);
+    }
+
+    setIsLoggingMeal(false);
   };
 
   const isSafeToInject = elapsed >= 2;
@@ -264,19 +299,25 @@ export function FastingTimer() {
 
           <Button
             variant="outline"
-            className="w-full mt-4 h-10 border-dashed border-white/20 bg-white/5 hover:bg-white/10 hover:border-primary/50 hover:text-primary text-white/60 transition-all duration-300 group"
-            onClick={() => setIsModalOpen(true)}
+            className={`w-full mt-4 h-10 border-dashed transition-all duration-300 group ${
+              mealLogSuccess
+                ? "border-emerald-500/50 bg-emerald-500/10 text-emerald-400"
+                : "border-white/20 bg-white/5 hover:bg-white/10 hover:border-primary/50 hover:text-primary text-white/60"
+            }`}
+            onClick={logMeal}
+            disabled={isLoggingMeal || !user}
           >
-            <Plus className="mr-2 h-4 w-4 group-hover:scale-110 transition-transform" />{" "}
-            Add
+            {isLoggingMeal ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : mealLogSuccess ? (
+              <Check className="mr-2 h-4 w-4" />
+            ) : (
+              <Plus className="mr-2 h-4 w-4 group-hover:scale-110 transition-transform" />
+            )}
+            {mealLogSuccess ? "Logged!" : "Log Meal"}
           </Button>
         </CardContent>
       </Card>
-
-      <QuickLogModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-      />
     </div>
   );
 }
