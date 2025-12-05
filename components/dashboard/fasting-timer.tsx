@@ -46,7 +46,7 @@ function FastingRing({ elapsed, goal }: { elapsed: number; goal: number }) {
           cy="72"
           r="52"
           stroke="currentColor"
-          className="text-white/5"
+          className="text-foreground/10"
           strokeWidth="8"
           fill="none"
         />
@@ -69,10 +69,10 @@ function FastingRing({ elapsed, goal }: { elapsed: number; goal: number }) {
 
       {/* Center Content */}
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-3xl font-bold text-white tracking-tighter">
+        <span className="text-3xl font-bold text-foreground tracking-tighter">
           {formatTime(elapsed)}
         </span>
-        <span className="text-[10px] font-medium text-white/40 uppercase tracking-widest mt-1">
+        <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest mt-1">
           Elapsed
         </span>
       </div>
@@ -218,11 +218,11 @@ export function FastingTimer() {
   return (
     <div className="grid grid-cols-12 gap-4">
       {/* Left Column: Fasting Timer (60%) */}
-      <Card className="col-span-7 bg-card/50 border-white/5 backdrop-blur-sm relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-transparent via-white/10 to-transparent opacity-50" />
+      <Card className="col-span-7 glass-surface-strong border backdrop-blur-sm relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-transparent via-foreground/10 to-transparent opacity-50" />
         <CardContent className="p-5 flex flex-col items-center justify-center h-full relative z-10">
           <div className="w-full flex justify-between items-center mb-2">
-            <div className="text-xs font-semibold text-white/60 uppercase tracking-wider flex items-center gap-1.5">
+            <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
               <Zap className="w-3 h-3 text-amber-400" /> Fasting
             </div>
             {isSafeToInject && (
@@ -278,19 +278,19 @@ export function FastingTimer() {
       </Card>
 
       {/* Right Column: Meal Log (40%) */}
-      <Card className="col-span-5 bg-card/50 border-white/5 backdrop-blur-sm flex flex-col">
+      <Card className="col-span-5 glass-surface-strong border backdrop-blur-sm flex flex-col">
         <CardContent className="p-5 flex flex-col justify-between h-full">
           <div>
-            <div className="text-xs font-semibold text-white/60 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+            <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-1.5">
               <Utensils className="w-3 h-3 text-blue-400" /> Nutrition
             </div>
             <div className="space-y-1">
-              <div className="text-xl font-bold text-white leading-none">
+              <div className="text-xl font-bold text-foreground leading-none">
                 Log Meal
               </div>
-              <div className="text-[10px] font-medium text-white/40">
+              <div className="text-[10px] font-medium text-muted-foreground">
                 Last:{" "}
-                <span className="text-white/60">
+                <span className="text-muted-foreground">
                   {lastMealTime ? lastMealDisplay : "No meals logged"}
                 </span>
               </div>
@@ -302,7 +302,7 @@ export function FastingTimer() {
             className={`w-full mt-4 h-10 border-dashed transition-all duration-300 group ${
               mealLogSuccess
                 ? "border-emerald-500/50 bg-emerald-500/10 text-emerald-400"
-                : "border-white/20 bg-white/5 hover:bg-white/10 hover:border-primary/50 hover:text-primary text-white/60"
+                : "border-border/60 bg-muted/40 hover:bg-primary/10 hover:border-primary/50 hover:text-primary text-foreground/80"
             }`}
             onClick={logMeal}
             disabled={isLoggingMeal || !user}

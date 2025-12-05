@@ -59,7 +59,7 @@ export function HeroSection() {
   };
 
   if (loading)
-    return <div className="h-48 animate-pulse bg-white/5 rounded-3xl" />;
+    return <div className="h-48 animate-pulse glass-track rounded-3xl" />;
 
   const progressPercentage =
     todaysDoses.length > 0 ? (completedCount / todaysDoses.length) * 100 : 0;
@@ -67,21 +67,21 @@ export function HeroSection() {
   return (
     <section className="space-y-4">
       <div className="flex items-center justify-between px-1">
-        <h2 className="text-lg font-medium text-white/90 tracking-tight">
+        <h2 className="text-lg font-medium text-foreground tracking-tight">
           {new Date().toLocaleDateString("en-US", {
             weekday: "long",
             month: "long",
             day: "numeric",
           })}
         </h2>
-        <span className="text-xs font-medium text-white/50 bg-white/5 px-2 py-1 rounded-full">
+        <span className="text-xs font-medium text-muted-foreground glass-track px-2 py-1 rounded-full">
           {completedCount} of {todaysDoses.length} Complete
         </span>
       </div>
 
-      <Card className="bg-linear-to-br from-card to-card/50 border-white/5 shadow-2xl relative overflow-hidden backdrop-blur-xl">
+      <Card className="bg-gradient-to-br from-card/90 to-card/70 border border-border/60 shadow-2xl relative overflow-hidden backdrop-blur-xl glass-surface-strong">
         {/* Decorative background glow */}
-        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/15 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
 
         <CardContent className="p-5 space-y-6">
           {/* Progress Bar */}
@@ -90,10 +90,7 @@ export function HeroSection() {
               <span>Daily Progress</span>
               <span>{Math.round(progressPercentage)}%</span>
             </div>
-            <Progress
-              value={progressPercentage}
-              className="h-1.5 bg-white/10"
-            />
+            <Progress value={progressPercentage} className="h-1.5 bg-foreground/10" />
           </div>
 
           {/* Dose List */}
@@ -109,16 +106,16 @@ export function HeroSection() {
                     className="group"
                   >
                     <div
-                      className={`
+                    className={`
                                 relative flex items-center justify-between p-4 rounded-2xl border transition-all duration-300
                                 ${
                                   dose.status === "taken"
-                                    ? "bg-white/5 border-white/5 opacity-60"
-                                    : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 hover:shadow-lg hover:shadow-black/20"
+                                    ? "glass-surface border opacity-70"
+                                    : "glass-surface-strong border hover:shadow-lg hover:shadow-foreground/10"
                                 }
                             `}
-                    >
-                      <div className="flex items-center gap-4">
+                  >
+                    <div className="flex items-center gap-4">
                         <button
                           onClick={() =>
                             dose.status !== "taken" && handleComplete(dose)
@@ -128,8 +125,8 @@ export function HeroSection() {
                                             w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300
                                             ${
                                               dose.status === "taken"
-                                                ? "bg-teal-500/20 text-teal-400"
-                                                : "bg-white/5 text-white/20 hover:bg-teal-500 hover:text-white hover:scale-105 active:scale-95"
+                                                ? "bg-teal-500/20 text-teal-600"
+                                                : "glass-track text-muted-foreground hover:bg-primary hover:text-primary-foreground hover:scale-105 active:scale-95"
                                             }
                                         `}
                         >
@@ -144,14 +141,14 @@ export function HeroSection() {
                           <h3
                             className={`font-semibold text-base ${
                               dose.status === "taken"
-                                ? "text-white/50 line-through"
-                                : "text-white"
+                                ? "text-muted-foreground line-through"
+                                : "text-foreground"
                             }`}
                           >
                             {dose.peptideName}
                           </h3>
                           <div className="flex items-center gap-2 mt-0.5">
-                            <span className="text-xs font-medium text-white/40 bg-white/5 px-1.5 py-0.5 rounded">
+                            <span className="text-xs font-medium text-muted-foreground glass-track px-1.5 py-0.5 rounded">
                               {dose.dose}
                             </span>
                             {dose.requiresFasting &&
@@ -166,15 +163,15 @@ export function HeroSection() {
 
                       <div className="text-right">
                         {dose.status === "taken" ? (
-                          <span className="text-xs font-medium text-teal-400/80">
+                          <span className="text-xs font-medium text-teal-600">
                             Done
                           </span>
                         ) : (
                           <div className="flex flex-col items-end">
-                            <span className="text-xs font-medium text-white/60">
+                            <span className="text-xs font-medium text-muted-foreground">
                               Due Now
                             </span>
-                            <span className="text-[10px] text-white/30">
+                            <span className="text-[10px] text-muted-foreground">
                               {dose.timingPreference}
                             </span>
                           </div>

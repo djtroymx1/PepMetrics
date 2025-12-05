@@ -48,6 +48,12 @@
   --chart-3: #22c55e;
   --chart-4: #f59e0b;
   --chart-5: #ef4444;
+
+  /* Glass surfaces */
+  --glass-surface: rgba(255, 255, 255, 0.04);
+  --glass-strong: rgba(255, 255, 255, 0.08);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-track: rgba(255, 255, 255, 0.06);
 }
 
 /* Light mode override */
@@ -79,6 +85,12 @@
   --sidebar-accent-foreground: #1a1a1a;
   --sidebar-border: #e2e8f0;
   --sidebar-ring: #14b8a6;
+
+  /* Glass surfaces tuned for light */
+  --glass-surface: rgba(0, 0, 0, 0.03);
+  --glass-strong: rgba(0, 0, 0, 0.06);
+  --glass-border: rgba(0, 0, 0, 0.08);
+  --glass-track: rgba(0, 0, 0, 0.05);
 }
 
 @theme inline {
@@ -149,5 +161,21 @@
     @apply bg-background text-foreground;
     font-feature-settings: "cv11", "ss01";
     font-variation-settings: "opsz" auto;
+  }
+}
+
+@layer components {
+  .glass-surface {
+    background-color: var(--glass-surface);
+    border-color: var(--glass-border);
+  }
+
+  .glass-surface-strong {
+    background-color: var(--glass-strong);
+    border-color: var(--glass-border);
+  }
+
+  .glass-track {
+    background-color: var(--glass-track);
   }
 }

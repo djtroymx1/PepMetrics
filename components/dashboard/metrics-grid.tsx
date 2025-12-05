@@ -192,10 +192,10 @@ export function MetricsGrid() {
   return (
     <div className="grid grid-cols-2 gap-4">
       {/* Weight Card */}
-      <Card className="bg-card/50 border-white/5 backdrop-blur-sm group hover:bg-white/5 transition-colors duration-300 relative">
+      <Card className="glass-surface-strong border backdrop-blur-sm group hover:glass-surface transition-colors duration-300 relative">
         <CardContent className="p-5">
           <div className="flex justify-between items-start mb-3">
-            <div className="flex items-center gap-2 text-xs font-semibold text-white/60 uppercase tracking-wider">
+            <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
               <Scale className="w-3.5 h-3.5 text-teal-400" /> Weight
             </div>
             <div className="flex items-center gap-2">
@@ -238,10 +238,10 @@ export function MetricsGrid() {
                 value={weightInput}
                 onChange={(e) => setWeightInput(e.target.value)}
                 onKeyDown={handleWeightKeyDown}
-                className="flex-1 h-8 rounded-lg border border-white/10 bg-white/5 px-2 text-sm font-mono tabular-nums text-white placeholder:text-white/30 focus:border-teal-500/50 focus:outline-none focus:ring-1 focus:ring-teal-500/30"
+                className="flex-1 h-8 rounded-lg border border-border/60 glass-track px-2 text-sm font-mono tabular-nums text-foreground placeholder:text-muted-foreground focus:border-teal-500/50 focus:outline-none focus:ring-1 focus:ring-teal-500/30"
                 disabled={isLoggingWeight}
               />
-              <span className="text-xs text-white/40">lbs</span>
+              <span className="text-xs text-muted-foreground">lbs</span>
               <button
                 onClick={logWeight}
                 disabled={isLoggingWeight || !weightInput}
@@ -264,7 +264,7 @@ export function MetricsGrid() {
                   setIsWeightInputOpen(false);
                   setWeightInput("");
                 }}
-                className="flex items-center justify-center w-7 h-7 rounded-lg bg-white/5 text-white/40 hover:bg-white/10 hover:text-white/60 transition-colors"
+                className="flex items-center justify-center w-7 h-7 rounded-lg glass-track text-muted-foreground hover:bg-muted/60 hover:text-foreground transition-colors"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -272,15 +272,15 @@ export function MetricsGrid() {
           )}
 
           <div className="flex items-baseline gap-1 mb-1">
-            <span className="text-3xl font-bold text-white tracking-tight">
+            <span className="text-3xl font-bold text-foreground tracking-tight">
               {currentWeight || "--"}
             </span>
-            <span className="text-xs font-medium text-white/40">lbs</span>
+            <span className="text-xs font-medium text-muted-foreground">lbs</span>
           </div>
 
-          <div className="text-xs text-white/40 mb-4 font-medium">
+          <div className="text-xs text-muted-foreground mb-4 font-medium">
             {eightWeekChange && eightWeekChange < 0 ? "Down" : "Up"}{" "}
-            <span className="text-white/80">
+            <span className="text-foreground">
               {Math.abs(eightWeekChange || 0)} lbs
             </span>{" "}
             in 8w
@@ -305,10 +305,10 @@ export function MetricsGrid() {
       </Card>
 
       {/* Sleep Card */}
-      <Card className="bg-card/50 border-white/5 backdrop-blur-sm group hover:bg-white/5 transition-colors duration-300">
+      <Card className="glass-surface-strong border backdrop-blur-sm group hover:glass-surface transition-colors duration-300">
         <CardContent className="p-5">
           <div className="flex justify-between items-start mb-3">
-            <div className="flex items-center gap-2 text-xs font-semibold text-white/60 uppercase tracking-wider">
+            <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
               <Moon className="w-3.5 h-3.5 text-violet-400" /> Sleep
             </div>
             {sleepDelta !== null && (
@@ -332,13 +332,13 @@ export function MetricsGrid() {
           {lastSleepScore !== null ? (
             <>
               <div className="flex items-baseline gap-1 mb-1">
-                <span className="text-3xl font-bold text-white tracking-tight">
+                <span className="text-3xl font-bold text-foreground tracking-tight">
                   {lastSleepScore}
                 </span>
-                <span className="text-xs font-medium text-white/40">Score</span>
+                <span className="text-xs font-medium text-muted-foreground">Score</span>
               </div>
 
-              <div className="text-xs text-white/40 mb-4 font-medium">
+              <div className="text-xs text-muted-foreground mb-4 font-medium">
                 {sleepDelta !== null && sleepDelta >= 0 ? "+" : ""}
                 {sleepDelta} pts vs 7d avg
               </div>
@@ -359,7 +359,7 @@ export function MetricsGrid() {
             </>
           ) : (
             <div className="py-4 text-center">
-              <p className="text-sm text-white/40 mb-2">No sleep data yet</p>
+              <p className="text-sm text-muted-foreground mb-2">No sleep data yet</p>
               <Link
                 href="/health"
                 className="text-xs text-violet-400 hover:text-violet-300"
@@ -372,19 +372,19 @@ export function MetricsGrid() {
       </Card>
 
       {/* HRV Card (Full Width) */}
-      <Card className="col-span-2 bg-card/50 border-white/5 backdrop-blur-sm group hover:bg-white/5 transition-colors duration-300">
+      <Card className="col-span-2 glass-surface-strong border backdrop-blur-sm group hover:glass-surface transition-colors duration-300">
         <CardContent className="p-5 flex items-center justify-between">
           {lastHrv !== null ? (
             <>
               <div className="space-y-1">
-                <div className="flex items-center gap-2 text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">
+                <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
                   <Activity className="w-3.5 h-3.5 text-rose-400" /> HRV Status
                 </div>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-3xl font-bold text-white tracking-tight">
+                  <span className="text-3xl font-bold text-foreground tracking-tight">
                     {lastHrv}
                   </span>
-                  <span className="text-sm font-medium text-white/40">ms</span>
+                  <span className="text-sm font-medium text-muted-foreground">ms</span>
                 </div>
                 <div className="flex items-center gap-2 mt-1">
                   <span
@@ -400,7 +400,7 @@ export function MetricsGrid() {
                       ? "Normal"
                       : "Low"}
                   </span>
-                  <span className="text-xs text-white/40 font-medium">
+                  <span className="text-xs text-muted-foreground font-medium">
                     {hrvDeltaPercent !== null && hrvDeltaPercent >= 0 ? "+" : ""}
                     {hrvDeltaPercent}% vs baseline
                   </span>
@@ -423,10 +423,10 @@ export function MetricsGrid() {
             </>
           ) : (
             <div className="w-full py-2 text-center">
-              <div className="flex items-center justify-center gap-2 text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">
+              <div className="flex items-center justify-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
                 <Activity className="w-3.5 h-3.5 text-rose-400" /> HRV Status
               </div>
-              <p className="text-sm text-white/40 mb-2">No HRV data yet</p>
+              <p className="text-sm text-muted-foreground mb-2">No HRV data yet</p>
               <Link
                 href="/health"
                 className="text-xs text-rose-400 hover:text-rose-300"

@@ -22,7 +22,7 @@ export function WeeklyOverview() {
   }, []);
 
   return (
-    <Card className="bg-card/30 border-white/5 backdrop-blur-sm overflow-hidden">
+    <Card className="glass-surface border backdrop-blur-sm overflow-hidden">
       <CardContent className="p-4">
         <div className="flex justify-between items-center">
           {schedule.map((day) => {
@@ -37,7 +37,7 @@ export function WeeklyOverview() {
             // Gray: Future/No doses
             // Red: Past and overdue
 
-            let statusColor = "bg-white/10"; // Default/Empty
+            let statusColor = "bg-muted/60"; // Default/Empty
             const totalDoses = day.doses.length;
             const takenDoses = day.doses.filter(
               (d) => d.status === "taken"
@@ -53,7 +53,7 @@ export function WeeklyOverview() {
               } else if (day.isPast) {
                 statusColor = "bg-red-500/50";
               } else {
-                statusColor = "bg-white/20"; // Pending future
+                statusColor = "bg-muted/80"; // Pending future
               }
             }
 
@@ -65,8 +65,8 @@ export function WeeklyOverview() {
                 <span
                   className={`text-[10px] font-bold uppercase tracking-wider ${
                     day.isToday
-                      ? "text-white"
-                      : "text-white/40 group-hover:text-white/70"
+                      ? "text-foreground"
+                      : "text-muted-foreground group-hover:text-foreground"
                   } transition-colors`}
                 >
                   {dayName}
@@ -76,11 +76,7 @@ export function WeeklyOverview() {
                   className={`
                     w-2 h-2 rounded-full transition-all duration-300
                     ${statusColor}
-                    ${
-                      day.isToday
-                        ? "scale-125 ring-2 ring-white/10 ring-offset-2 ring-offset-black"
-                        : ""
-                    }
+                    ${day.isToday ? "scale-125 ring-2 ring-primary/20 ring-offset-2 ring-offset-background" : ""}
                 `}
                 />
               </div>

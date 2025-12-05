@@ -17,7 +17,7 @@ export default function DashboardPage() {
         <div className="p-4 lg:p-8 max-w-md mx-auto lg:max-w-4xl space-y-6">
           {/* Header */}
           <div className="mb-6">
-            <h1 className="text-2xl font-semibold text-white">
+            <h1 className="text-2xl font-semibold text-foreground">
               Good morning, Troy
             </h1>
             <p className="text-muted-foreground">
