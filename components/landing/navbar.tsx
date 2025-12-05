@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 
 export function Navbar() {
   return (
-    <header className="fixed top-0 w-full z-50 border-b border-white/5 bg-black/5 backdrop-blur-md saturate-150 supports-backdrop-filter:bg-black/20">
+    <header className="fixed top-0 w-full z-50 border-b border-white/10 bg-black/50 backdrop-blur-xl">
       <div className="container mx-auto px-4 h-20 sm:h-24 lg:h-28 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-3">
           <Image
@@ -39,7 +39,7 @@ export function Navbar() {
             Sign In
           </Link>
           <Link href="/login">
-            <Button className="bg-white text-black hover:bg-zinc-200 transition-all duration-300 hover:scale-105 hover:shadow-[0_0_20px_rgba(255,255,255,0.3)]">
+            <Button className="bg-white text-black hover:bg-zinc-200">
               Get Started
             </Button>
           </Link>

@@ -1,19 +1,11 @@
-"use client";
-
 import { Zap, Clock, Activity, Brain } from "lucide-react";
 import Image from "next/image";
-import { useRef } from "react";
-import gsap from "gsap";
-import { useGSAP } from "@gsap/react";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-
-gsap.registerPlugin(ScrollTrigger);
 
 const features = [
   {
     title: "One-Tap Dose Logging",
     description:
-      'Log your injections in seconds. Set up your protocol once—daily, weekly, or custom cycling schedules—and never wonder "did I take that already?" again.',
+      "Log your injections in seconds. Set up your protocol once—daily, weekly, or custom cycling schedules—and never wonder \"did I take that already?\" again.",
     icon: Zap,
     image: "/assets/landing/protocol-polished.png",
     color: "text-teal-400",
@@ -73,40 +65,8 @@ const features = [
 ];
 
 export function Features() {
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useGSAP(
-    () => {
-      const items = gsap.utils.toArray<HTMLElement>(".feature-item");
-
-      items.forEach((item, index) => {
-        gsap.fromTo(
-          item,
-          { opacity: 0, y: 50 },
-          {
-            opacity: 1,
-            y: 0,
-            duration: 1,
-            ease: "power3.out",
-            scrollTrigger: {
-              trigger: item,
-              start: "top 80%", // Animation starts when top of item hits 80% of viewport height
-              end: "bottom 20%",
-              toggleActions: "play none none reverse",
-            },
-          }
-        );
-      });
-    },
-    { scope: containerRef }
-  );
-
   return (
-    <section
-      id="features"
-      ref={containerRef}
-      className="py-24 md:py-32 relative overflow-hidden"
-    >
+    <section id="features" className="py-24 md:py-32 relative overflow-hidden">
       <div className="container mx-auto px-4">
         <div className="text-center max-w-3xl mx-auto mb-20">
           <h2 className="text-3xl md:text-5xl font-bold mb-6 text-white">
@@ -114,9 +74,7 @@ export function Features() {
             <span className="text-teal-500">in one place</span>
           </h2>
           <p className="text-lg text-zinc-400">
-            Stop juggling spreadsheets, notes apps, and scattered reminders.
-            PepMetrics brings all your peptide tracking together—so you can
-            focus on results.
+            Stop juggling spreadsheets, notes apps, and scattered reminders. PepMetrics brings all your peptide tracking together—so you can focus on results.
           </p>
         </div>
 
@@ -124,9 +82,9 @@ export function Features() {
           {features.map((feature, index) => (
             <div
               key={index}
-              className={`feature-item flex flex-col ${
+              className={`flex flex-col ${
                 index % 2 === 1 ? "md:flex-row-reverse" : "md:flex-row"
-              } items-center gap-12 md:gap-24 opacity-0`} // Initial opacity 0 for GSAP
+              } items-center gap-12 md:gap-24`}
             >
               {/* Text Side */}
               <div className="flex-1 space-y-6">

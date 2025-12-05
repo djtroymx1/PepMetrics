@@ -138,22 +138,7 @@
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
-  --color-chart-5: var(--chart-5);
   --animate-shimmer: shimmer 1.4s infinite;
-  
-  /* Premium Easing Curves */
-  --ease-premium-out: cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-bouncy: cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-.noise {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  pointer-events: none;
-  opacity: 0.05;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  mix-blend-mode: overlay;
 }
 
 @property --progress {
@@ -183,22 +168,14 @@
   .glass-surface {
     background-color: var(--glass-surface);
     border-color: var(--glass-border);
-    backdrop-filter: blur(12px) saturate(180%);
-    -webkit-backdrop-filter: blur(12px) saturate(180%);
   }
 
   .glass-surface-strong {
     background-color: var(--glass-strong);
     border-color: var(--glass-border);
-    backdrop-filter: blur(16px) saturate(180%);
-    -webkit-backdrop-filter: blur(16px) saturate(180%);
   }
 
   .glass-track {
     background-color: var(--glass-track);
-  }
-  
-  .text-reveal-mask {
-    clip-path: polygon(0 0, 100% 0, 100% 100%, 0% 100%);
   }
 }
