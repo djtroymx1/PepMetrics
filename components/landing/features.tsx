@@ -18,18 +18,18 @@ const features = [
     ],
   },
   {
-    title: "Smart Fasting Timer",
+    title: "Your Protocol at a Glance",
     description:
-      "Many peptides work best on an empty stomach. The built-in fasting timer shows when you've hit your window—so you're not guessing if it's been long enough.",
+      "See your entire protocol history on one visual calendar. Every dose logged, every day tracked—so you always know where you are in your cycle and what's coming next.",
     icon: Clock,
     image: "/assets/landing/calendar-landscape-final-v2.png",
     color: "text-violet-400",
     gradient: "from-violet-500/20 to-violet-500/0",
     imagePosition: "object-center",
     bullets: [
-      "\"Safe to Inject\" indicator when you've fasted 2+ hours",
-      "Knows which of your peptides require fasting",
-      "Quick-log your meals to keep the timer accurate",
+      "Color-coded view shows completed, missed, and upcoming doses",
+      "Tap any day to log or edit entries",
+      "Perfect for cycling protocols and multi-peptide stacks",
     ],
   },
   {
