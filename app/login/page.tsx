@@ -1,10 +1,41 @@
+"use client";
+
+import { useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 
 export default function LoginPage() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+  const supabase = createClient();
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      setError(error.message);
+      setLoading(false);
+    } else {
+      router.push("/dashboard");
+      router.refresh();
+    }
+  };
+
   return (
     <div className="min-h-screen bg-black text-white flex flex-col md:flex-row">
       {/* Left Side - Visual */}
@@ -36,14 +67,17 @@ export default function LoginPage() {
             </p>
           </div>
 
-          <div className="space-y-4">
+          <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
                 placeholder="name@example.com"
                 type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 className="bg-zinc-900 border-zinc-800 focus:border-teal-500 focus:ring-teal-500/20"
+                required
               />
             </div>
             <div className="space-y-2">
@@ -51,13 +85,34 @@ export default function LoginPage() {
               <Input
                 id="password"
                 type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 className="bg-zinc-900 border-zinc-800 focus:border-teal-500 focus:ring-teal-500/20"
+                required
               />
             </div>
-            <Button className="w-full bg-white text-black hover:bg-zinc-200">
-              Sign In with Email
+
+            {error && (
+              <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3">
+                <p className="text-sm text-red-400">{error}</p>
+              </div>
+            )}
+
+            <Button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-white text-black hover:bg-zinc-200 disabled:opacity-50"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Signing in...
+                </>
+              ) : (
+                "Sign In with Email"
+              )}
             </Button>
-          </div>
+          </form>
 
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
@@ -74,12 +129,14 @@ export default function LoginPage() {
             <Button
               variant="outline"
               className="bg-zinc-900 border-zinc-800 hover:bg-zinc-800 hover:text-white"
+              disabled
             >
               Google
             </Button>
             <Button
               variant="outline"
               className="bg-zinc-900 border-zinc-800 hover:bg-zinc-800 hover:text-white"
+              disabled
             >
               Apple
             </Button>
@@ -88,7 +145,7 @@ export default function LoginPage() {
           <p className="px-8 text-center text-sm text-zinc-400">
             Don&apos;t have an account?{" "}
             <Link
-              href="/signup"
+              href="/auth/signup"
               className="underline underline-offset-4 hover:text-white"
             >
               Sign up
