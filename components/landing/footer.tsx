@@ -11,9 +11,9 @@ export function Footer() {
               <Image
                 src="/assets/landing/pepmetrics%20transparent%20white.png"
                 alt="PepMetrics logo"
-                width={220}
-                height={60}
-                className="h-12 sm:h-14 w-auto drop-shadow-[0_6px_16px_rgba(0,0,0,0.35)]"
+                width={260}
+                height={72}
+                className="h-14 sm:h-16 lg:h-18 w-auto drop-shadow-[0_8px_18px_rgba(0,0,0,0.35)]"
               />
               <span className="sr-only">PepMetrics</span>
             </Link>

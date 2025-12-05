@@ -5,14 +5,14 @@ import { Button } from "@/components/ui/button";
 export function Navbar() {
   return (
     <header className="fixed top-0 w-full z-50 border-b border-white/10 bg-black/50 backdrop-blur-xl">
-      <div className="container mx-auto px-4 h-16 md:h-20 flex items-center justify-between">
+      <div className="container mx-auto px-4 h-16 sm:h-20 lg:h-24 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-3">
           <Image
             src="/assets/landing/pepmetrics%20transparent%20white.png"
             alt="PepMetrics logo"
-            width={260}
-            height={72}
-            className="h-12 sm:h-14 lg:h-16 w-auto drop-shadow-[0_6px_16px_rgba(0,0,0,0.35)]"
+            width={320}
+            height={96}
+            className="h-14 sm:h-16 lg:h-20 w-auto drop-shadow-[0_8px_18px_rgba(0,0,0,0.35)]"
             priority
           />
           <span className="sr-only">PepMetrics</span>
