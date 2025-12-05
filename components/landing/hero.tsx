@@ -7,8 +7,8 @@ export function Hero() {
   return (
     <section className="pt-32 pb-20 md:pt-48 md:pb-32 overflow-hidden relative">
       {/* Background Gradients */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[500px] bg-teal-500/20 blur-[120px] rounded-full pointer-events-none mix-blend-screen" />
-      <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-violet-600/10 blur-[120px] rounded-full pointer-events-none mix-blend-screen" />
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[500px] bg-teal-500/50 blur-[120px] rounded-full pointer-events-none mix-blend-screen animate-blob" />
+      <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-violet-600/40 blur-[120px] rounded-full pointer-events-none mix-blend-screen animate-blob animation-delay-2000" />
 
       <div className="container mx-auto px-4 relative z-10">
         <div className="max-w-4xl mx-auto text-center mb-12">
