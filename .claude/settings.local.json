@@ -9,7 +9,10 @@
       "Bash(git push)",
       "Skill(pepmetrics-dev)",
       "Bash(git commit:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(dir /b \"c:\\Users\\fladj\\PepMetrics\\pepmetrics\")",
+      "Bash(git checkout:*)",
+      "Bash(git diff:*)"
     ],
     "deny": [],
     "ask": []

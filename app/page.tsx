@@ -1,43 +1,36 @@
-"use client";
+import { Navbar } from "@/components/landing/navbar";
+import { Hero } from "@/components/landing/hero";
+import { Features } from "@/components/landing/features";
+import { AnalyticsSection } from "@/components/landing/analytics-section";
+import { Pricing } from "@/components/landing/pricing";
+import { FAQ } from "@/components/landing/faq";
+import { Footer } from "@/components/landing/footer";
 
-import { AppSidebar } from "@/components/app-sidebar";
-import { MobileNav } from "@/components/mobile-nav";
-import { HeroSection } from "@/components/dashboard/hero-section";
-import { FastingTimer } from "@/components/dashboard/fasting-timer";
-import { MetricsGrid } from "@/components/dashboard/metrics-grid";
-import { WeeklyOverview } from "@/components/dashboard/weekly-overview";
-
-export default function DashboardPage() {
+export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <AppSidebar />
-      <MobileNav />
-
-      <main className="lg:pl-64 pb-32 lg:pb-0">
-        <div className="p-4 lg:p-8 max-w-md mx-auto lg:max-w-4xl space-y-6">
-          {/* Header */}
-          <div className="mb-6">
-            <h1 className="text-2xl font-semibold text-foreground">
-              Good morning, Troy
-            </h1>
-            <p className="text-muted-foreground">
-              Here&apos;s your health command center.
-            </p>
-          </div>
-
-          {/* Zone 1: Hero Section (Injection Schedule) */}
-          <HeroSection />
-
-          {/* Zone 2: Fasting & Actions */}
-          <FastingTimer />
-
-          {/* Zone 2.5: Weekly Overview */}
-          <WeeklyOverview />
-
-          {/* Zone 3: Metrics Grid */}
-          <MetricsGrid />
+    <div className="min-h-screen bg-black text-zinc-100 selection:bg-teal-500/30 selection:text-teal-100">
+      {/* Background Decor */}
+      <div className="fixed inset-0 -z-10">
+        <div className="absolute inset-0 opacity-50 [mask-image:radial-gradient(60%_50%_at_50%_20%,black,transparent)]">
+          {/* Using a placeholder or generated gradient if image not available, but user provided unsplash link. 
+              I'll use a CSS gradient fallback or the generated health preview as a subtle background if needed.
+              For now, I'll use a subtle noise/gradient effect to match the 'premium' feel without relying on external hotlinks. */}
+          <div className="w-full h-full bg-zinc-950" />
         </div>
+        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/70 to-black"></div>
+        <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-[120rem] h-[40rem] bg-gradient-to-r from-teal-500/10 via-cyan-500/10 to-violet-500/10 blur-3xl opacity-70"></div>
+        <div className="absolute bottom-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
+      </div>
+
+      <Navbar />
+      <main>
+        <Hero />
+        <Features />
+        <AnalyticsSection />
+        <Pricing />
+        <FAQ />
       </main>
+      <Footer />
     </div>
   );
 }
