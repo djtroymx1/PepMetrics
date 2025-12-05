@@ -48,7 +48,6 @@
   --chart-3: #22c55e;
   --chart-4: #f59e0b;
   --chart-5: #ef4444;
-
 }
 
 /* Light mode override */
@@ -80,7 +79,6 @@
   --sidebar-accent-foreground: #1a1a1a;
   --sidebar-border: #e2e8f0;
   --sidebar-ring: #14b8a6;
-
 }
 
 @theme inline {
@@ -128,6 +126,19 @@
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
+  --animate-shimmer: shimmer 1.4s infinite;
+}
+
+@property --progress {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
 }
 
 @layer base {

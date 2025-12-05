@@ -1,7 +1,15 @@
 {
   "permissions": {
     "allow": [
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npm run build:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nSync localStorage data to Supabase for AI Insights\n\nAdd protocol sync mechanism to fix AI Insights showing \"0 protocols, 0 dose logs\"\ndespite having data in the UI. The issue was that the frontend stores data in\nlocalStorage while AI features query Supabase.\n\n- Add /api/protocols/sync endpoint to sync protocols from localStorage\n- Add useProtocolsSync hook mirroring existing dose logs sync pattern\n- Update insights page to sync protocols and dose logs before generating\n- Show sync status during analysis generation\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git push)",
+      "Skill(pepmetrics-dev)",
+      "Bash(git commit:*)",
+      "Bash(grep:*)"
     ],
     "deny": [],
     "ask": []
