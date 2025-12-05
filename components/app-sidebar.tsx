@@ -3,20 +3,19 @@
 import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { 
-  LayoutDashboard, 
-  Syringe, 
-  Activity, 
-  TrendingUp, 
-  Calendar, 
-  Sparkles, 
+import {
+  LayoutDashboard,
+  Syringe,
+  Activity,
+  TrendingUp,
+  Calendar,
+  Sparkles,
   FlaskConical,
   Settings,
   ChevronLeft,
   ChevronRight
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { QuickLogFab } from "./quick-log-fab"
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
@@ -125,8 +124,6 @@ export function AppSidebar() {
           </div>
         </div>
       </aside>
-
-      <QuickLogFab />
     </>
   )
 }
