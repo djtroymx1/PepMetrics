@@ -69,7 +69,7 @@ export default function SignupPage() {
               Click the link to activate your account.
             </p>
             <Link
-              href="/auth/login"
+              href="/login"
               className="inline-block w-full py-3 rounded-xl bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors text-center"
             >
               Back to Sign In
@@ -197,7 +197,7 @@ export default function SignupPage() {
           <div className="mt-6 pt-6 border-t border-border">
             <p className="text-center text-sm text-muted-foreground">
               Already have an account?{' '}
-              <Link href="/auth/login" className="text-primary hover:underline font-medium">
+              <Link href="/login" className="text-primary hover:underline font-medium">
                 Sign in
               </Link>
             </p>

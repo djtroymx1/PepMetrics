@@ -6,7 +6,7 @@ import { LayoutDashboard, Syringe, Activity, TrendingUp, Settings as SettingsIco
 import { cn } from "@/lib/utils"
 
 const mobileNav = [
-  { name: "Dashboard", href: "/", icon: LayoutDashboard },
+  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "Protocols", href: "/protocols", icon: Syringe },
   { name: "Health", href: "/health", icon: Activity },
   { name: "Progress", href: "/progress", icon: TrendingUp },
