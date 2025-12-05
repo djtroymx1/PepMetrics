@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 export function Footer() {
@@ -6,12 +7,18 @@ export function Footer() {
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
           <div className="col-span-2 md:col-span-1">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-6 h-6 bg-gradient-to-br from-teal-500 to-violet-600 rounded-md" />
-              <span className="font-bold text-lg text-white">PepMetrics</span>
-            </div>
+            <Link href="/" className="flex items-center gap-3 mb-4">
+              <Image
+                src="/assets/landing/pepmetrics%20transparent%20white.png"
+                alt="PepMetrics logo"
+                width={160}
+                height={44}
+                className="h-9 w-auto drop-shadow-[0_4px_10px_rgba(0,0,0,0.3)]"
+              />
+              <span className="sr-only">PepMetrics</span>
+            </Link>
             <p className="mb-4">
-              PepMetrics helps you track your peptide protocols and understand how they affect your health. We&apos;re a tracking tool—not medical advice.
+              PepMetrics helps you track your peptide protocols and understand how they affect your health. We&apos;re a tracking tool - not medical advice.
             </p>
           </div>
 
