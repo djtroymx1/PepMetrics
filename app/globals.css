@@ -74,7 +74,7 @@
   --accent-foreground: #ffffff;
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
-  --border: #e2e8f0;
+  --border: #cbd5e1;
   --input: #e2e8f0;
   --ring: #14b8a6;
   --sidebar: #ffffff;
@@ -86,11 +86,11 @@
   --sidebar-border: #e2e8f0;
   --sidebar-ring: #14b8a6;
 
-  /* Glass surfaces tuned for light */
-  --glass-surface: rgba(0, 0, 0, 0.03);
-  --glass-strong: rgba(0, 0, 0, 0.06);
-  --glass-border: rgba(0, 0, 0, 0.08);
-  --glass-track: rgba(0, 0, 0, 0.05);
+  /* Glass surfaces tuned for light - Increased opacity and contrast */
+  --glass-surface: rgba(255, 255, 255, 0.7);
+  --glass-strong: rgba(255, 255, 255, 0.9);
+  --glass-border: rgba(0, 0, 0, 0.15);
+  --glass-track: rgba(0, 0, 0, 0.08);
 }
 
 @theme inline {
