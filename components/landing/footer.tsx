@@ -11,8 +11,7 @@ export function Footer() {
               <span className="font-bold text-lg text-white">PepMetrics</span>
             </div>
             <p className="mb-4">
-              The intelligent tracking platform for peptide protocols and health
-              optimization.
+              PepMetrics helps you track your peptide protocols and understand how they affect your health. We&apos;re a tracking tool—not medical advice.
             </p>
           </div>
 
@@ -20,23 +19,13 @@ export function Footer() {
             <h4 className="font-bold text-white mb-4">Product</h4>
             <ul className="space-y-2">
               <li>
-                <Link href="#" className="hover:text-white transition-colors">
+                <Link href="#features" className="hover:text-white transition-colors">
                   Features
                 </Link>
               </li>
               <li>
-                <Link href="#" className="hover:text-white transition-colors">
-                  Integrations
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="hover:text-white transition-colors">
+                <Link href="#pricing" className="hover:text-white transition-colors">
                   Pricing
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="hover:text-white transition-colors">
-                  Changelog
                 </Link>
               </li>
             </ul>
@@ -46,24 +35,19 @@ export function Footer() {
             <h4 className="font-bold text-white mb-4">Resources</h4>
             <ul className="space-y-2">
               <li>
-                <Link href="#" className="hover:text-white transition-colors">
-                  Documentation
+                <Link href="#faq" className="hover:text-white transition-colors">
+                  FAQ
                 </Link>
               </li>
               <li>
-                <Link href="#" className="hover:text-white transition-colors">
-                  Peptide Guide
-                </Link>
+                <span className="text-zinc-500 cursor-not-allowed">
+                  Documentation <span className="text-xs">(Coming Soon)</span>
+                </span>
               </li>
               <li>
-                <Link href="#" className="hover:text-white transition-colors">
-                  Community
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="hover:text-white transition-colors">
-                  Blog
-                </Link>
+                <span className="text-zinc-500 cursor-not-allowed">
+                  Peptide Guide <span className="text-xs">(Coming Soon)</span>
+                </span>
               </li>
             </ul>
           </div>
@@ -72,18 +56,13 @@ export function Footer() {
             <h4 className="font-bold text-white mb-4">Legal</h4>
             <ul className="space-y-2">
               <li>
-                <Link href="#" className="hover:text-white transition-colors">
+                <Link href="/privacy" className="hover:text-white transition-colors">
                   Privacy Policy
                 </Link>
               </li>
               <li>
-                <Link href="#" className="hover:text-white transition-colors">
+                <Link href="/terms" className="hover:text-white transition-colors">
                   Terms of Service
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="hover:text-white transition-colors">
-                  Cookie Policy
                 </Link>
               </li>
             </ul>

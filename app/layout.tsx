@@ -9,8 +9,8 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-inter" })
 const jetbrainsMono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-jetbrains-mono" })
 
 export const metadata: Metadata = {
-  title: "PepMetrics - Peptide Tracking & Health Optimization",
-  description: "Track peptide protocols, health metrics, and optimize your wellness journey",
+  title: "PepMetrics — Peptide Tracking App | Log Doses, Track Fasting, See Results",
+  description: "Track your peptide protocols in one place. Log doses, monitor fasting windows, import Garmin health data, and get AI-powered insights. Free to start.",
   generator: "v0.app",
   icons: {
     icon: [
@@ -28,6 +28,11 @@ export const metadata: Metadata = {
       },
     ],
     apple: "/apple-icon.png",
+  },
+  openGraph: {
+    title: "PepMetrics — The Peptide Tracking App",
+    description: "Finally see if your peptide protocols are working. Track doses, fasting, and health metrics in one intelligent dashboard.",
+    type: "website",
   },
 }
 

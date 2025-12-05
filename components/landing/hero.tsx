@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+﻿import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -17,14 +17,13 @@ export function Hero() {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-teal-500"></span>
             </span>
-            Powered by Anthropic Claude AI
+            Now with AI-powered insights
           </div>
           <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-6 bg-clip-text text-transparent bg-gradient-to-b from-white to-white/60">
-            Optimize Your Peptide Protocols
+            Track Your Peptides. See What&apos;s Working.
           </h1>
           <p className="text-xl text-zinc-400 mb-8 max-w-2xl mx-auto leading-relaxed">
-            Track dosages, monitor fasting windows, and sync health metrics. The
-            intelligent command center for biohackers.
+            Log your doses, track your fasting windows, and connect your Garmin data - all in one place. Finally see if your protocols are actually making a difference.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link href="/login">
@@ -51,10 +50,13 @@ export function Hero() {
         <div className="relative mx-auto max-w-5xl mt-16">
           <div className="aspect-video bg-zinc-900/50 rounded-xl border border-white/10 overflow-hidden shadow-2xl shadow-teal-500/10 relative group">
             <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent z-10" />
-            <img
+            <Image
               src="/assets/landing/CTA.png"
               alt="PepMetrics CTA Preview"
-              className="w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105"
+              fill
+              sizes="(min-width: 1024px) 60vw, 100vw"
+              className="object-cover object-center transition-transform duration-700 group-hover:scale-105"
+              priority
             />
           </div>
         </div>

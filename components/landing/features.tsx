@@ -3,44 +3,64 @@ import Image from "next/image";
 
 const features = [
   {
-    title: "One-Tap Dose Tracking",
+    title: "One-Tap Dose Logging",
     description:
-      "Log your peptides in seconds. Smart scheduling knows your protocol and reminds you exactly when it's time to inject.",
+      "Log your injections in seconds. Set up your protocol once—daily, weekly, or custom cycling schedules—and never wonder \"did I take that already?\" again.",
     icon: Zap,
-    image: "/assets/landing/protocol-polished.png", // Using polished protocol management UI
+    image: "/assets/landing/protocol-polished.png",
     color: "text-teal-400",
     gradient: "from-teal-500/20 to-teal-500/0",
     imagePosition: "object-top",
+    bullets: [
+      "Supports 90+ peptides with pre-filled dosing info",
+      "Daily, weekly, or custom cycling schedules",
+      "Visual calendar shows your complete protocol history",
+    ],
   },
   {
     title: "Smart Fasting Timer",
     description:
-      "Know exactly when it's safe to inject. Get alerts when you've reached your required fasting window for optimal absorption.",
+      "Many peptides work best on an empty stomach. The built-in fasting timer shows when you've hit your window—so you're not guessing if it's been long enough.",
     icon: Clock,
     image: "/assets/landing/calendar-landscape-final-v2.png",
     color: "text-violet-400",
     gradient: "from-violet-500/20 to-violet-500/0",
     imagePosition: "object-center",
+    bullets: [
+      "\"Safe to Inject\" indicator when you've fasted 2+ hours",
+      "Knows which of your peptides require fasting",
+      "Quick-log your meals to keep the timer accurate",
+    ],
   },
   {
-    title: "Synced Health Metrics",
+    title: "Connect Your Garmin Data",
     description:
-      "Automatically pull sleep, HRV, and activity data from your wearable to see how your protocol affects your recovery.",
+      "Import your sleep scores, HRV, stress levels, and Body Battery directly from Garmin Connect. See your health trends alongside your protocol timeline.",
     icon: Activity,
     image: "/assets/landing/health-landscape-final-v5.png",
     color: "text-blue-400",
     gradient: "from-blue-500/20 to-blue-500/0",
     imagePosition: "object-center",
+    bullets: [
+      "Full Garmin data export support (sleep, HRV, stress, steps)",
+      "Trend charts that overlay with your protocol start dates",
+      "No API keys or complex setup—just upload your export file",
+    ],
   },
   {
-    title: "AI-Powered Insights",
+    title: "AI That Connects the Dots",
     description:
-      "Let our AI analyze correlations between your protocol and your health data to optimize your stack for peak performance.",
+      "Our AI analyzes your dosing patterns alongside your health data and surfaces observations you might miss. Weekly summaries highlight what's trending up, what's trending down, and what might be worth adjusting.",
     icon: Brain,
     image: "/assets/landing/ai-insights-minimal.png",
     color: "text-pink-400",
     gradient: "from-pink-500/20 to-pink-500/0",
     imagePosition: "object-center",
+    bullets: [
+      "Weekly insight reports delivered to your dashboard",
+      "Ask questions about your data in plain English",
+      "Correlation detection between protocols and health metrics",
+    ],
   },
 ];
 
@@ -50,12 +70,11 @@ export function Features() {
       <div className="container mx-auto px-4">
         <div className="text-center max-w-3xl mx-auto mb-20">
           <h2 className="text-3xl md:text-5xl font-bold mb-6 text-white">
-            Everything you need to{" "}
-            <span className="text-teal-500">optimize</span>
+            Everything you need{" "}
+            <span className="text-teal-500">in one place</span>
           </h2>
           <p className="text-lg text-zinc-400">
-            Stop using notes apps and spreadsheets. PepMetrics brings
-            professional-grade tracking to your biohacking routine.
+            Stop juggling spreadsheets, notes apps, and scattered reminders. PepMetrics brings all your peptide tracking together—so you can focus on results.
           </p>
         </div>
 
@@ -81,13 +100,13 @@ export function Features() {
                   {feature.description}
                 </p>
                 <ul className="space-y-3">
-                  {[1, 2, 3].map((i) => (
+                  {feature.bullets.map((bullet, i) => (
                     <li
                       key={i}
                       className="flex items-center gap-3 text-zinc-300"
                     >
                       <div className="w-1.5 h-1.5 rounded-full bg-teal-500" />
-                      Feature benefit point {i}
+                      {bullet}
                     </li>
                   ))}
                 </ul>
@@ -100,10 +119,12 @@ export function Features() {
                     className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-50`}
                   />
                   <div className="absolute inset-4 md:inset-8 rounded-xl overflow-hidden border border-white/5 shadow-2xl">
-                    <img
+                    <Image
                       src={feature.image}
                       alt={feature.title}
-                      className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${
+                      fill
+                      sizes="(min-width: 1024px) 40vw, 100vw"
+                      className={`object-cover transition-transform duration-500 group-hover:scale-105 ${
                         feature.imagePosition || "object-center"
                       }`}
                     />
