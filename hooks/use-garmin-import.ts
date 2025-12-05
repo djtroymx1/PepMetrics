@@ -112,6 +112,7 @@ export function useGarminImport(): UseGarminImportReturn {
         // Send the processed data to the API (much smaller than the ZIP)
         const response = await fetch('/api/garmin/import-data', {
           method: 'POST',
+          credentials: 'include',
           headers: {
             'Content-Type': 'application/json',
           },
@@ -157,6 +158,7 @@ export function useGarminImport(): UseGarminImportReturn {
 
       const response = await fetch('/api/garmin/import', {
         method: 'POST',
+        credentials: 'include',
         body: formData,
       })
 
@@ -189,7 +191,9 @@ export function useGarminImport(): UseGarminImportReturn {
     setIsLoadingHistory(true)
 
     try {
-      const response = await fetch('/api/garmin/import')
+      const response = await fetch('/api/garmin/import', {
+        credentials: 'include',
+      })
 
       if (!response.ok) {
         throw new Error('Failed to fetch import history')
